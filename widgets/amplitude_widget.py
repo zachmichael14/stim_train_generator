@@ -1,52 +1,53 @@
 import sys
-from PySide6.QtWidgets import QApplication, QComboBox, QWidget, QHBoxLayout, QMainWindow, QRadioButton, QButtonGroup, QLineEdit, QVBoxLayout, QGroupBox
+from PySide6.QtWidgets import QApplication, QComboBox, QWidget, QHBoxLayout, QMainWindow, QRadioButton, QButtonGroup, QLineEdit, QVBoxLayout, QGroupBox, QCheckBox
 
 class ConstantWidget(QWidget):
-    def __init__(self):
+    def __init__(self, placeholder_text: str="Constant value"):
         super().__init__()
         main_layout = QHBoxLayout()
 
-        self.amplitude_edit = QLineEdit()
-        self.amplitude_edit.setPlaceholderText("Amplitude (mA)")
-        main_layout.addWidget(self.amplitude_edit)
+        self.text_edit = QLineEdit()
+        self.text_edit.setPlaceholderText(placeholder_text)
+        main_layout.addWidget(self.text_edit)
 
         self.setLayout(main_layout)
 
 
 class RampWidget(QWidget):
-    def __init__(self, parent: QWidget=None):
+    def __init__(self,
+                 start_placeholder_text: str="Start value",
+                 stop_placeholder_text: str="Stop value",
+                 step_placeholder_text: str="Step value"):
         super().__init__()        
         main_layout = QHBoxLayout()
 
-        self.amplitude_start_edit = QLineEdit()
-        self.amplitude_start_edit.setPlaceholderText("Start (mA)")
+        self.start_edit = QLineEdit()
+        self.start_edit.setPlaceholderText(start_placeholder_text)
 
-        self.amplitude_stop_edit = QLineEdit()
-        self.amplitude_stop_edit.setPlaceholderText("Start (mA)")
+        self.stop_edit = QLineEdit()
+        self.stop_edit.setPlaceholderText(stop_placeholder_text)
 
-        self.amplitude_step_edit = QLineEdit()
-        self.amplitude_step_edit.setPlaceholderText("Step")
+        self.step_edit = QLineEdit()
+        self.step_edit.setPlaceholderText(step_placeholder_text)
 
-        main_layout.addWidget(self.amplitude_start_edit)
-        main_layout.addWidget(self.amplitude_stop_edit)
-        main_layout.addWidget(self.amplitude_step_edit)
+        main_layout.addWidget(self.start_edit)
+        main_layout.addWidget(self.stop_edit)
+        main_layout.addWidget(self.step_edit)
 
         self.setLayout(main_layout)
 
 
 class FunctionWidget(QWidget):
-    def __init__(self):
+    def __init__(self, options: list=["Option 1", "Option 2", "Option 3"]):
         super().__init__()
         main_layout = QHBoxLayout()
 
         self.function_dropdown = QComboBox()
-        self.function_dropdown.addItem("Fx 1")
-        self.function_dropdown.addItem("Fx 2")
-        self.function_dropdown.addItem("Fx 3")
-    
+        self.function_dropdown.addItems(options)    
         main_layout.addWidget(self.function_dropdown)
-
         self.setLayout(main_layout)
+
+        # TODO: Will likely need methods for interacting with dropdown options
 
 
 class IntervalWidget(QWidget):
@@ -57,8 +58,6 @@ class IntervalWidget(QWidget):
 
     def init_ui(self):
         self.main_layout = QVBoxLayout(self)
-
-        # Create the GroupBox for Mode Settings
         self.mode_groupbox = QGroupBox(f"{self.title}")
         self.mode_layout = QVBoxLayout(self.mode_groupbox)
 
@@ -111,6 +110,57 @@ class IntervalWidget(QWidget):
         self.subwidget.deleteLater()
         self.subwidget = new_subwidget
 
+class TrainLengthWidget(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.init_ui()
+
+    def init_ui(self):
+        # Create the GroupBox for Mode Settings
+        main_layout = QVBoxLayout(self)
+        self.groupbox = QGroupBox("Train Length Settings")
+        self.groupbox_layout = QVBoxLayout(self.groupbox)
+
+        self.total_amplitude_edit = QLineEdit()
+        self.total_amplitude_edit.setPlaceholderText("Total Number of Unique Amplitudes")
+
+        self.amplitude_repetitions_edit = QLineEdit()
+        self.amplitude_repetitions_edit.setPlaceholderText("Repetitions per Amplitude")
+
+        self.total_stim_edit = QLineEdit()
+        self.total_stim_edit.setPlaceholderText("Total Number of Stims")
+
+        self.groupbox_layout.addWidget(self.total_stim_edit)
+        self.groupbox_layout.addWidget(self.total_amplitude_edit)
+        self.groupbox_layout.addWidget(self.amplitude_repetitions_edit)
+        self.groupbox_layout.addWidget(self.total_stim_edit)
+
+        main_layout.addWidget(self.groupbox)
+        self.setLayout(main_layout)
+
+class ChannelAddWidget(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.init_ui()
+
+    def init_ui(self):
+        # Create the GroupBox for Mode Settings
+        main_layout = QVBoxLayout(self)
+        self.groupbox = QGroupBox("Add Train to Channel(s)")
+        self.groupbox_layout = QHBoxLayout(self.groupbox)
+
+
+        for i in range(1, 9):
+            checkbox = QCheckBox(f"Channel {i}")
+            self.groupbox_layout.addWidget(checkbox)
+
+
+        main_layout.addWidget(self.groupbox)
+        self.setLayout(main_layout)
+
+
+class MiscSettingWidget(QWidget)
+
 class MainWidget(QWidget):
     def __init__(self):
         super().__init__()
@@ -126,6 +176,12 @@ class MainWidget(QWidget):
         # Create Pulse Interval IntervalWidget
         pulse_interval_widget = IntervalWidget("Pulse Interval Settings")
         main_layout.addWidget(pulse_interval_widget)
+
+        train_length_widget = TrainLengthWidget()
+        main_layout.addWidget(train_length_widget)
+
+        channel_add_widget = ChannelAddWidget()
+        main_layout.addWidget(channel_add_widget)
 
         self.setLayout(main_layout)
 
