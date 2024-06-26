@@ -1,36 +1,59 @@
 import sys
-from PySide6.QtWidgets import QApplication, QWidget, QHBoxLayout, QMainWindow, QRadioButton, QButtonGroup, QLineEdit, QVBoxLayout
+from PySide6.QtWidgets import QApplication, QComboBox, QWidget, QHBoxLayout, QMainWindow, QRadioButton, QButtonGroup, QLineEdit, QVBoxLayout, QGroupBox
 
 class ConstantWidget(QWidget):
     def __init__(self):
         super().__init__()
-        main_layout = QHBoxLayout(self)
+        main_layout = QHBoxLayout()
+        constant_groupbox = QGroupBox("Constant Amplitude Settings")
+        constant_groupbox.setLayout(main_layout)
 
-        self.amplitude_edit = QLineEdit(self)
+        self.amplitude_edit = QLineEdit()
         self.amplitude_edit.setPlaceholderText("Amplitude (mA)")
-
         main_layout.addWidget(self.amplitude_edit)
+
         self.setLayout(main_layout)
 
-class RampWidget(QWidget):
-    def __init__(self):
-        super().__init__()
-        main_layout = QVBoxLayout(self)
 
-        self.amplitude_start_edit = QLineEdit(self)
+class RampWidget(QWidget):
+    def __init__(self, parent: QWidget=None):
+        super().__init__()        
+        main_layout = QHBoxLayout()
+        ramp_groupbox = QGroupBox("Ramping Amplitude Settings")
+        ramp_groupbox.setLayout(main_layout)
+
+        self.amplitude_start_edit = QLineEdit()
         self.amplitude_start_edit.setPlaceholderText("Start (mA)")
 
-        self.amplitude_stop_edit = QLineEdit(self)
+        self.amplitude_stop_edit = QLineEdit()
         self.amplitude_stop_edit.setPlaceholderText("Start (mA)")
 
-        self.amplitude_step_edit = QLineEdit(self)
+        self.amplitude_step_edit = QLineEdit()
         self.amplitude_step_edit.setPlaceholderText("Step")
 
         main_layout.addWidget(self.amplitude_start_edit)
         main_layout.addWidget(self.amplitude_stop_edit)
         main_layout.addWidget(self.amplitude_step_edit)
 
-        self.setLayout(main_layout)    
+        self.setLayout(main_layout)
+
+
+class FunctionWidget(QWidget):
+    def __init__(self):
+        super().__init__()
+        main_layout = QHBoxLayout()
+        function_groupbox = QGroupBox("Ramping Amplitude Settings")
+        function_groupbox.setLayout(main_layout)
+
+        self.function_dropdown = QComboBox()
+        self.function_dropdown.addItem("Fx 1")
+        self.function_dropdown.addItem("Fx 2")
+        self.function_dropdown.addItem("Fx 3")
+    
+        main_layout.addWidget(self.function_dropdown)
+
+        self.setLayout(main_layout)
+
 
 class AmplitudeWidget(QWidget):
     def __init__(self):
@@ -38,21 +61,31 @@ class AmplitudeWidget(QWidget):
         self.init_ui()
 
     def init_ui(self):
-        self.main_layout = QHBoxLayout(self)
+        self.main_layout = QVBoxLayout(self)
+
+        # Create the GroupBox for Amplitude Mode Settings
+        self.mode_groupbox = QGroupBox("Amplitude Mode Settings")
+        self.mode_layout = QVBoxLayout(self.mode_groupbox)
+
         self.init_mode_selectors()
+
+        # Create a placeholder widget to hold the subwidget
+        self.subwidget_container = QWidget()
+        self.subwidget_layout = QVBoxLayout(self.subwidget_container)
 
         # Constant radio button is by default
         self.subwidget = ConstantWidget()
-        self.main_layout.addWidget(self.subwidget)
+        self.subwidget_layout.addWidget(self.subwidget)
 
+        self.mode_layout.addWidget(self.subwidget_container)
+        self.main_layout.addWidget(self.mode_groupbox)
         self.setLayout(self.main_layout)
-
-
     
     def init_mode_selectors(self):
+        selector_layout = QHBoxLayout()
+
         self.constant_button = QRadioButton("Constant", self)
         self.constant_button.setChecked(True)
-
         self.ramp_button = QRadioButton("Ramp", self)
         self.function_button = QRadioButton("Function", self)
 
@@ -63,20 +96,25 @@ class AmplitudeWidget(QWidget):
 
         self.mode_selector.buttonClicked.connect(self.handle_mode_selector)
 
-        self.main_layout.addWidget(self.constant_button)
-        self.main_layout.addWidget(self.ramp_button)
-        self.main_layout.addWidget(self.function_button)
+        selector_layout.addWidget(self.constant_button)
+        selector_layout.addWidget(self.ramp_button)
+        selector_layout.addWidget(self.function_button)
 
-
-
-
+        self.mode_layout.addLayout(selector_layout)
+        
     def handle_mode_selector(self, button: QRadioButton):
         if button == self.constant_button:
-            self.subwidget = ConstantWidget()
+            self.show_widget(ConstantWidget)
         elif button == self.ramp_button:
-            self.subwidget = RampWidget()
+            self.show_widget(RampWidget)
         else:
-            self.subwidget = ""
+            self.show_widget(FunctionWidget)
+
+    def show_widget(self, widget_class: QWidget):
+        new_subwidget = widget_class()
+        self.subwidget_layout.replaceWidget(self.subwidget, new_subwidget)
+        self.subwidget.deleteLater()
+        self.subwidget = new_subwidget
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
