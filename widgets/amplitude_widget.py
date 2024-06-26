@@ -49,16 +49,17 @@ class FunctionWidget(QWidget):
         self.setLayout(main_layout)
 
 
-class AmplitudeWidget(QWidget):
-    def __init__(self):
+class IntervalWidget(QWidget):
+    def __init__(self, title):
         super().__init__()
+        self.title = title
         self.init_ui()
 
     def init_ui(self):
         self.main_layout = QVBoxLayout(self)
 
-        # Create the GroupBox for Amplitude Mode Settings
-        self.mode_groupbox = QGroupBox("Amplitude Mode Settings")
+        # Create the GroupBox for Mode Settings
+        self.mode_groupbox = QGroupBox(f"{self.title}")
         self.mode_layout = QVBoxLayout(self.mode_groupbox)
 
         self.init_mode_selectors()
@@ -110,11 +111,29 @@ class AmplitudeWidget(QWidget):
         self.subwidget.deleteLater()
         self.subwidget = new_subwidget
 
+class MainWidget(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.init_ui()
+
+    def init_ui(self):
+        main_layout = QVBoxLayout(self)
+
+        # Create Amplitude IntervalWidget
+        amplitude_widget = IntervalWidget("Amplitude Settings")
+        main_layout.addWidget(amplitude_widget)
+
+        # Create Pulse Interval IntervalWidget
+        pulse_interval_widget = IntervalWidget("Pulse Interval Settings")
+        main_layout.addWidget(pulse_interval_widget)
+
+        self.setLayout(main_layout)
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = QMainWindow()
 
-    w = AmplitudeWidget()
+    w = MainWidget()
     window.setCentralWidget(w)
     window.setWindowTitle("Stim Train Generator")
     window.show()
