@@ -5,8 +5,6 @@ class ConstantWidget(QWidget):
     def __init__(self):
         super().__init__()
         main_layout = QHBoxLayout()
-        constant_groupbox = QGroupBox("Constant Amplitude Settings")
-        constant_groupbox.setLayout(main_layout)
 
         self.amplitude_edit = QLineEdit()
         self.amplitude_edit.setPlaceholderText("Amplitude (mA)")
@@ -19,8 +17,6 @@ class RampWidget(QWidget):
     def __init__(self, parent: QWidget=None):
         super().__init__()        
         main_layout = QHBoxLayout()
-        ramp_groupbox = QGroupBox("Ramping Amplitude Settings")
-        ramp_groupbox.setLayout(main_layout)
 
         self.amplitude_start_edit = QLineEdit()
         self.amplitude_start_edit.setPlaceholderText("Start (mA)")
@@ -42,8 +38,6 @@ class FunctionWidget(QWidget):
     def __init__(self):
         super().__init__()
         main_layout = QHBoxLayout()
-        function_groupbox = QGroupBox("Ramping Amplitude Settings")
-        function_groupbox.setLayout(main_layout)
 
         self.function_dropdown = QComboBox()
         self.function_dropdown.addItem("Fx 1")
