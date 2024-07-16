@@ -1,5 +1,6 @@
 import numpy as np
 from numpy import linspace
+import json
 from PySide6 import QtCore
 
 class StimTrain(QtCore.QObject):
@@ -7,6 +8,7 @@ class StimTrain(QtCore.QObject):
 
     def __init__(self):
         super().__init__()
+        self.trains = {}
         self.amplitudes: np.array = None
         self.frequencies: np.array = None
         self.pulse_durations: np.array = None
@@ -79,7 +81,15 @@ class StimTrain(QtCore.QObject):
         if self.inter_pulse_intervals is not None:
             self.inter_pulse_intervals = self.generate_repeats(self.inter_pulse_intervals,
                                                                len(self.amplitudes) - 1)
+            
 
     def update_frequencies(self):
         if self.frequencies is not None:
             self.frequencies = self.generate_repeats(self.frequencies, len(self.amplitudes))
+
+        
+class StimTrainManager(QtCore.QObject):
+    json_updated = QtCore.Signal(str)
+
+    def __init__(self):
+        super().__init__()
