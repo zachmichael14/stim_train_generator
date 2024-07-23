@@ -1,53 +1,13 @@
 import sys
 
-from PySide6.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QWidget, QInputDialog, QLineEdit, QLabel, QPushButton, QDialog, QHBoxLayout, QToolBar)
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QWidget, QInputDialog, QPushButton, QDialog, QToolBar, QMenu)
+from PySide6.QtCore import QTimer
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 from matplotlib.backend_bases import MouseButton
 
-class PulseEditDialog(QDialog):
-    def __init__(self, channel, index, amplitude, frequency, duration, parent=None):
-        super().__init__(parent)
-        self.channel = channel
-        self.index = index
-        self.amplitude = amplitude
-        self.frequency = frequency
-        self.duration = duration
-        self.setup_ui()
+from widgets.dialog_widgets import IntervalEditDialog, PulseEditDialog
 
-    def setup_ui(self):
-        self.setWindowTitle(f'Edit Pulse for Channel {self.channel}')
-        layout = QVBoxLayout(self)
-
-        self.amplitude_label = QLabel('Amplitude (mA):', self)
-        self.amplitude_input = QLineEdit(str(self.amplitude), self)
-        layout.addWidget(self.amplitude_label)
-        layout.addWidget(self.amplitude_input)
-
-        self.frequency_label = QLabel('Frequency (Hz):', self)
-        self.frequency_input = QLineEdit(str(self.frequency), self)
-        layout.addWidget(self.frequency_label)
-        layout.addWidget(self.frequency_input)
-
-        self.duration_label = QLabel('Duration (ms):', self)
-        self.duration_input = QLineEdit(str(self.duration), self)
-        layout.addWidget(self.duration_label)
-        layout.addWidget(self.duration_input)
-
-        button_layout = QHBoxLayout()
-        self.ok_button = QPushButton('OK', self)
-        self.cancel_button = QPushButton('Cancel', self)
-        self.ok_button.clicked.connect(self.accept)
-        self.cancel_button.clicked.connect(self.reject)
-        button_layout.addWidget(self.ok_button)
-        button_layout.addWidget(self.cancel_button)
-        layout.addLayout(button_layout)
-
-    def get_values(self):
-        return (float(self.amplitude_input.text()),
-                int(self.frequency_input.text()),
-                int(self.duration_input.text()))
 
 class StimTrainPlotter(QMainWindow):
     def __init__(self, data):
@@ -100,6 +60,28 @@ class StimTrainPlotter(QMainWindow):
         self.pan_timer = QTimer(self)
         self.pan_timer.timeout.connect(self.do_pan)
 
+    def create_context_menu(self, event):
+        menu = QMenu(self)
+
+        add_pulse_menu = menu.addMenu("Add Pulse")
+        add_pulse_before = add_pulse_menu.addAction("Add Before")
+        add_pulse_after = add_pulse_menu.addAction("Add After")
+
+        add_interval_menu = menu.addMenu("Add Interval")
+        add_interval_before = add_interval_menu.addAction("Add Before")
+        add_interval_after = add_interval_menu.addAction("Add After")
+
+        delete_action = menu.addAction("Delete")
+
+        action = menu.exec(self.canvas.mapToGlobal(event.guiEvent.position().toPoint()))
+
+        if action in (add_pulse_before, add_pulse_after):
+            self.add_pulse(event.xdata, event.ydata, before=(action == add_pulse_before))
+        elif action in (add_interval_before, add_interval_after):
+            self.add_interval(event.xdata, event.ydata, before=(action == add_interval_before))
+        elif action == delete_action:
+            self.delete_item(event)
+
     def plot_data(self):
         self.axes.clear()
         
@@ -107,64 +89,73 @@ class StimTrainPlotter(QMainWindow):
         y_labels = []
         self.bar_data = []
         all_pulses = []
-
+        max_x_limit = 0
+    
+        # Collect all pulses and intervals, and calculate the maximum x-axis limit
         for channel, params in self.data.items():
             y_ticks.append(channel)
             y_labels.append(f"Channel {channel}")
             time = 0
-            amplitudes = params['amplitudes']
-            frequencies = params['frequencies']
-            inter_pulse_intervals = params['inter_pulse_intervals']
-            pulse_durations = params['pulse_durations']
-
+            amplitudes = params["amplitudes"]
+            frequencies = params["frequencies"]
+            inter_pulse_intervals = params["inter_pulse_intervals"]
+            pulse_durations = params["pulse_durations"]
+    
             for i, amplitude in enumerate(amplitudes):
                 frequency = frequencies[i]
                 pulse_duration = pulse_durations[i]
                 pulse_end_time = time + pulse_duration
-
-                all_pulses.append((time, 'pulse', channel, i, pulse_duration, amplitude, frequency))
-
+    
+                all_pulses.append((time, "pulse", channel, i, pulse_duration, amplitude, frequency))
+    
                 if i < len(inter_pulse_intervals):
                     inter_pulse_interval = inter_pulse_intervals[i]
                     inter_pulse_interval_end_time = pulse_end_time + inter_pulse_interval
-                    all_pulses.append((pulse_end_time, 'inter_pulse_interval', channel, i, inter_pulse_interval))
+                    all_pulses.append((pulse_end_time, "inter_pulse_interval", channel, i, inter_pulse_interval))
                     time = inter_pulse_interval_end_time
                 else:
                     time = pulse_end_time
-
+    
+                # Update the maximum x-axis limit
+                if time > max_x_limit:
+                    max_x_limit = time
+    
         all_pulses.sort()
         pulse_counter = 1
-
+    
+        # Set the x-axis limit before drawing
+        self.axes.set_xlim(0, max_x_limit + 1000)  # Adding some buffer
+    
+        # Draw all bars and add text
         for start, pulse_type, channel, index, duration, *additional in all_pulses:
-            if pulse_type == 'pulse':
+            if pulse_type == "pulse":
                 amplitude, frequency = additional
-                bar = self.axes.barh(channel, duration, left=start, color='blue', edgecolor='black')
-                self.bar_data.append((bar, 'pulse', channel, index, start, duration))
+                bar = self.axes.barh(channel, duration, left=start, color="blue", edgecolor="black")
+                self.bar_data.append((bar, "pulse", channel, index, start, duration))
                 self.add_pulse_text(channel, index, start, duration, amplitude, frequency, pulse_counter)
                 pulse_counter += 1
-            elif pulse_type == 'inter_pulse_interval':
-                bar = self.axes.barh(channel, duration, left=start, color='gray', edgecolor='black')
-                self.bar_data.append((bar, 'inter_pulse_interval', channel, index, start, duration))
+            elif pulse_type == "inter_pulse_interval":
+                bar = self.axes.barh(channel, duration, left=start, color="gray", edgecolor="black")
+                self.bar_data.append((bar, "inter_pulse_interval", channel, index, start, duration))
                 self.add_interval_text(channel, start, duration)
-
+    
         self.axes.set_yticks(y_ticks)
         self.axes.set_yticklabels(y_labels)
-        self.axes.set_xlabel('Time (ms)')
-        if self.original_x_limit:
-            self.axes.set_xlim(self.original_x_limit)
+        self.axes.set_xlabel("Time (ms)")
         self.canvas.draw()
+
 
     def add_pulse_text(self, channel, index, start, duration, amplitude, frequency, pulse_counter):
         text = f"#{pulse_counter}\n{amplitude}mA\n{frequency}Hz\n{duration:.1f}ms"
         if self.text_fits(duration, text):
             x_pos = start + duration / 2
-            self.axes.text(x_pos, channel, text, ha='center', va='center', color='white', fontsize=8)
+            self.axes.text(x_pos, channel, text, ha="center", va="center", color="white", fontsize=8)
 
     def add_interval_text(self, channel, start, duration):
         text = f"{duration:.1f}ms"
         if self.text_fits(duration, text):
             x_pos = start + duration / 2
-            self.axes.text(x_pos, channel, text, ha='center', va='center', color='white', fontsize=8)
+            self.axes.text(x_pos, channel, text, ha="center", va="center", color="white", fontsize=8)
 
     def text_fits(self, duration, text):
         text_width = self.calculate_text_width(text)
@@ -190,16 +181,15 @@ class StimTrainPlotter(QMainWindow):
                 self.handle_single_click(event)
         
         else:
-            # Right click
-            pass
+            self.create_context_menu(event)
 
     def handle_double_click(self, event):
         for bar, bar_type, channel, index, start, duration in self.bar_data:
             contains, _ = bar[0].contains(event)
             if contains:
-                if bar_type == 'pulse':
+                if bar_type == "pulse":
                     self.edit_pulse_values(bar, channel, index)
-                elif bar_type == 'inter_pulse_interval':
+                elif bar_type == "inter_pulse_interval":
                     self.edit_inter_pulse_interval_duration(bar, channel, index)
                 break
 
@@ -224,10 +214,10 @@ class StimTrainPlotter(QMainWindow):
 
         new_duration = max(1, round(duration + delta_x))
 
-        if bar_type == 'pulse':
-            self.data[channel]['pulse_durations'][index] = new_duration
-        elif bar_type == 'inter_pulse_interval':
-            self.data[channel]['inter_pulse_intervals'][index] = new_duration
+        if bar_type == "pulse":
+            self.data[channel]["pulse_durations"][index] = new_duration
+        elif bar_type == "inter_pulse_interval":
+            self.data[channel]["inter_pulse_intervals"][index] = new_duration
 
         self.plot_data()
 
@@ -248,9 +238,9 @@ class StimTrainPlotter(QMainWindow):
         current_x_limit = self.axes.get_xlim()
         x_data = event.xdata
 
-        if event.button == 'up':
+        if event.button == "up":
             scale_factor = 1 / base_scale
-        elif event.button == 'down':
+        elif event.button == "down":
             scale_factor = base_scale
         else:
             scale_factor = 1
@@ -288,12 +278,11 @@ class StimTrainPlotter(QMainWindow):
 
         current_x_limit = self.axes.get_xlim()
         pan_step = 50
-        print(self.pan_direction)
         new_x_min, new_x_max = current_x_limit
-        if self.pan_direction == '<':
+        if self.pan_direction == "<":
             new_x_min = max(0, current_x_limit[0] - pan_step)
             new_x_max = max(new_x_min + (current_x_limit[1] - current_x_limit[0]), current_x_limit[1] - pan_step)
-        elif self.pan_direction == '>':
+        elif self.pan_direction == ">":
             new_x_min = max(0, current_x_limit[0] + pan_step)
             new_x_max = current_x_limit[1] + pan_step
 
@@ -303,37 +292,155 @@ class StimTrainPlotter(QMainWindow):
         self.plot_data()
 
     def edit_pulse_values(self, bar, channel, index):
-        current_amplitude = self.data[channel]['amplitudes'][index]
-        current_frequency = self.data[channel]['frequencies'][index]
-        current_duration = self.data[channel]['pulse_durations'][index]
+        current_amplitude = self.data[channel]["amplitudes"][index]
+        current_frequency = self.data[channel]["frequencies"][index]
+        current_duration = self.data[channel]["pulse_durations"][index]
 
-        dialog = PulseEditDialog(channel, index, current_amplitude, current_frequency, current_duration, self)
+        dialog = PulseEditDialog(current_amplitude, current_frequency, current_duration, self)
         if dialog.exec() == QDialog.Accepted:
             new_amplitude, new_frequency, new_duration = dialog.get_values()
-            self.data[channel]['amplitudes'][index] = new_amplitude
-            self.data[channel]['frequencies'][index] = new_frequency
-            self.data[channel]['pulse_durations'][index] = new_duration
+            self.data[channel]["amplitudes"][index] = new_amplitude
+            self.data[channel]["frequencies"][index] = new_frequency
+            self.data[channel]["pulse_durations"][index] = new_duration
             self.plot_data()
 
     def edit_inter_pulse_interval_duration(self, bar, channel, index):
-        current_duration = self.data[channel]['inter_pulse_intervals'][index]
-
-        new_duration, ok = QInputDialog.getInt(self, f'Edit Inter-pulse Interval for Channel {channel}',
-                                               'Enter new duration (ms):', value=current_duration, minValue=1)
-        if ok:
-            self.data[channel]['inter_pulse_intervals'][index] = new_duration
+        current_duration = self.data[channel]["inter_pulse_intervals"][index]
+        dialog = IntervalEditDialog(current_duration, self)
+        if dialog.exec() == QDialog.Accepted:
+            new_duration = dialog.get_value()
+            self.data[channel]["inter_pulse_intervals"][index] = new_duration
             self.plot_data()
+       
+    def add_pulse(self, xdata, ydata, before):
+        channel = round(ydata)
+        index = self.find_insertion_index(xdata, channel)
+        amplitude, ok = QInputDialog.getDouble(self, "Amplitude", "Enter amplitude (mA):")
+        if ok:
+            frequency, ok = QInputDialog.getDouble(self, "Frequency", "Enter frequency (Hz):")
+            if ok:
+                duration, ok = QInputDialog.getDouble(self, "Duration", "Enter duration (ms):")
+                if ok:
+                    command = AddPulseCommand(self, channel, amplitude, frequency, duration, index)
+                    self.undo_stack.append(command)
+                    command.execute()
+                    self.redo_stack.clear()
+
+    def add_interval(self, x, y, before=False):
+        channel = int(round(y))
+        if channel in self.data:
+            dialog = IntervalEditDialog()
+            if dialog.exec() == QDialog.Accepted:
+                duration = dialog.get_values()
+            
+                insert_index = self.find_insert_index(channel, x)
+                if not before:
+                    insert_index += 1
+            
+                self.data[channel]['inter_pulse_intervals'].insert(insert_index, duration)
+                self.plot_data()
+
+    def find_insert_index(self, channel, x):
+        total_time = 0
+        for i in range(len(self.data[channel]['amplitudes'])):
+            pulse_duration = self.data[channel]['pulse_durations'][i]
+            if total_time + pulse_duration > x:
+                return i
+            total_time += pulse_duration
+            if i < len(self.data[channel]['inter_pulse_intervals']):
+                interval_duration = self.data[channel]['inter_pulse_intervals'][i]
+                if total_time + interval_duration > x:
+                    return i + 1
+                total_time += interval_duration
+        return len(self.data[channel]['amplitudes'])
+    
+    def undo(self):
+        if self.undo_stack:
+            command = self.undo_stack.pop()
+            command.undo()
+            self.redo_stack.append(command)
+
+    def redo(self):
+        if self.redo_stack:
+            command = self.redo_stack.pop()
+            command.execute()
+            self.undo_stack.append(command)
+
+    def delete_item(self, event):
+        for bar, bar_type, channel, index, start, duration in self.bar_data:
+            contains, _ = bar[0].contains(event)
+            if contains:
+                if bar_type == 'pulse':
+                    self.delete_pulse(channel, index)
+                elif bar_type == 'inter_pulse_interval':
+                    self.delete_interval(channel, index)
+                self.plot_data()
+                break
+            
+    def delete_item(self, event):
+        for bar, bar_type, channel, index, start, duration in self.bar_data:
+            for rect in bar:
+                if rect.contains(event)[0]:
+                    if bar_type == "pulse":
+                        command = DeletePulseCommand(self, channel, index)
+                        self.undo_stack.append(command)
+                        command.execute()
+                        self.redo_stack.clear()
+
+    def delete_pulse(self, channel, index):
+        # Remove the pulse
+        del self.data[channel]['amplitudes'][index]
+        del self.data[channel]['frequencies'][index]
+        del self.data[channel]['pulse_durations'][index]
+
+        # Check if deleting this pulse results in two sequential intervals
+        if 0 < index < len(self.data[channel]['inter_pulse_intervals']):
+            interval1 = self.data[channel]['inter_pulse_intervals'][index - 1]
+            interval2 = self.data[channel]['inter_pulse_intervals'][index]
+            combined_interval = interval1 + interval2
+            self.data[channel]['inter_pulse_intervals'][index - 1] = combined_interval
+            del self.data[channel]['inter_pulse_intervals'][index]
+
+    def delete_interval(self, channel, index):
+        # Remove the interval
+        del self.data[channel]['inter_pulse_intervals'][index]
+    
+        # Check if deleting this interval results in two sequential pulses
+        if index < len(self.data[channel]['amplitudes']) - 1:
+            pulse1 = {
+                'amplitude': self.data[channel]['amplitudes'][index],
+                'frequency': self.data[channel]['frequencies'][index],
+                'duration': self.data[channel]['pulse_durations'][index]
+            }
+            pulse2 = {
+                'amplitude': self.data[channel]['amplitudes'][index + 1],
+                'frequency': self.data[channel]['frequencies'][index + 1],
+                'duration': self.data[channel]['pulse_durations'][index + 1]
+            }
+    
+            if pulse1['amplitude'] == pulse2['amplitude'] and pulse1['frequency'] == pulse2['frequency']:
+                # Combine the pulses
+                combined_duration = pulse1['duration'] + pulse2['duration']
+                self.data[channel]['pulse_durations'][index] = combined_duration
+                del self.data[channel]['amplitudes'][index + 1]
+                del self.data[channel]['frequencies'][index + 1]
+                del self.data[channel]['pulse_durations'][index + 1]
+            else:
+                # Just delete the second pulse
+                del self.data[channel]['amplitudes'][index + 1]
+                del self.data[channel]['frequencies'][index + 1]
+                del self.data[channel]['pulse_durations'][index + 1]
 
 if __name__ == "__main__":
     data = {
-        1: {'amplitudes': [0.5, 1.0, 0.8],
-            'frequencies': [5, 10, 8],
-            'pulse_durations': [100, 150, 120],
-            'inter_pulse_intervals': [50, 60, 70]},
-        2: {'amplitudes': [0.6, 1.1, 0.9],
-            'frequencies': [6, 11, 9],
-            'pulse_durations': [110, 160, 130],
-            'inter_pulse_intervals': [55, 65, 75]},
+        1: {"amplitudes": [0.5, 1.0, 0.8],
+            "frequencies": [5, 10, 8],
+            "pulse_durations": [100, 150, 120],
+            "inter_pulse_intervals": [50, 60, 70]},
+        2: {"amplitudes": [0.6, 1.1, 0.9],
+            "frequencies": [6, 11, 9],
+            "pulse_durations": [110, 160, 130],
+            "inter_pulse_intervals": [55, 65, 75]},
     }
 
     app = QApplication(sys.argv)
