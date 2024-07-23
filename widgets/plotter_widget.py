@@ -1,4 +1,5 @@
 import sys
+
 from PySide6.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QWidget, QInputDialog, QLineEdit, QLabel, QPushButton, QDialog, QHBoxLayout, QToolBar)
 from PySide6.QtCore import Qt, QTimer
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas

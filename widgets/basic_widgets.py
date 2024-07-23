@@ -1,15 +1,18 @@
 from abc import abstractmethod
+from typing import Dict
 
 from PySide6 import QtWidgets
 from PySide6 import QtCore
 
 class ConstantWidget(QtWidgets.QWidget):
-    def __init__(self, placeholder_text: str="Constant value"):
+    def __init__(self, label_text: str="Constant"):
         super().__init__()
         main_layout = QtWidgets.QHBoxLayout()
 
         self.text_edit = QtWidgets.QLineEdit()
-        self.text_edit.setPlaceholderText(placeholder_text)
+        self.text_label = QtWidgets.QLabel(f"{label_text}: ")
+
+        main_layout.addWidget(self.text_label)
         main_layout.addWidget(self.text_edit)
 
         self.setLayout(main_layout)
@@ -20,25 +23,37 @@ class ConstantWidget(QtWidgets.QWidget):
 
 class RampWidget(QtWidgets.QWidget):
     def __init__(self,
-                 start_placeholder_text: str="Start value",
-                 stop_placeholder_text: str="Stop value",
-                 step_placeholder_text: str="Number of Points"
-                 ):
+                start_label="Start:",
+                stop_label="Stop:",
+                points_label="Number of points:"):
+        
         super().__init__()        
-        main_layout = QtWidgets.QHBoxLayout()
+        main_layout = QtWidgets.QVBoxLayout()
 
+        self.start_label = QtWidgets.QLabel(start_label)
         self.start_edit = QtWidgets.QLineEdit()
-        self.start_edit.setPlaceholderText(start_placeholder_text)
+        
+        start_layout = QtWidgets.QHBoxLayout()
+        start_layout.addWidget(self.start_label)
+        start_layout.addWidget(self.start_edit)
 
+        self.stop_label = QtWidgets.QLabel(stop_label)
         self.stop_edit = QtWidgets.QLineEdit()
-        self.stop_edit.setPlaceholderText(stop_placeholder_text)
 
+        stop_layout = QtWidgets.QHBoxLayout()
+        stop_layout.addWidget(self.stop_label)
+        stop_layout.addWidget(self.stop_edit)
+        
+        self.points_label = QtWidgets.QLabel(points_label)
         self.points_edit = QtWidgets.QLineEdit()
-        self.points_edit.setPlaceholderText(step_placeholder_text)
 
-        main_layout.addWidget(self.start_edit)
-        main_layout.addWidget(self.stop_edit)
-        main_layout.addWidget(self.points_edit)
+        points_layout = QtWidgets.QHBoxLayout()
+        points_layout.addWidget(self.points_label)
+        points_layout.addWidget(self.points_edit)
+        
+        main_layout.addLayout(start_layout)
+        main_layout.addLayout(stop_layout)
+        main_layout.addLayout(points_layout)
 
         self.setLayout(main_layout)
 
@@ -66,7 +81,7 @@ class FunctionWidget(QtWidgets.QWidget):
 
 class IntervalWidget(QtWidgets.QWidget):
     value_changed = QtCore.Signal(dict)
-    mode_changed = QtCore.Signal(str)
+    mode_changed = QtCore.Signal()
 
     def __init__(self, title):
         super().__init__()
@@ -117,11 +132,12 @@ class IntervalWidget(QtWidgets.QWidget):
     def handle_mode_selector(self, button: QtWidgets.QRadioButton):
         if button == self.constant_button:
             self.show_widget(ConstantWidget)
-            self.mode_changed.emit
         elif button == self.ramp_button:
             self.show_widget(RampWidget)
         else:
             self.show_widget(FunctionWidget)
+        self.mode_changed.emit()
+        
 
     def show_widget(self, widget_class: QtWidgets.QWidget):
         new_subwidget = widget_class()
