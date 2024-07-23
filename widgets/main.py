@@ -29,7 +29,7 @@ from widgets import interval_widgets, custom_widgets, stim_train_manager, plotte
 class MainWidget(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
-        self.manager = stim_train_manager.StimTrainManager()
+        # self.manager = stim_train_manager.StimTrainManager()
         self.train = stim_train_manager.StimTrain()
         self.init_ui()
         
@@ -88,15 +88,15 @@ class MainWidget(QtWidgets.QWidget):
         for channel, details in result.items():
             print(f"Channel {channel}:")
             print("  Amplitudes: ", end="")
-            print(", ".join(f"{amp:.2f}" for amp in details['amplitudes']))
+            print(", ".join(f"{amp:.2f}" for amp in details["amplitudes"]))
         
-            print(f"  Frequency: {details['frequencies']} Hz")
+            print(f"  Frequency: {details["frequencies"]} Hz")
         
             print("  Pulse Durations: ", end="")
-            print(", ".join(f"{pd:.2f}" for pd in details['pulse_durations']))
+            print(", ".join(f"{pd:.2f}" for pd in details["pulse_durations"]))
         
             print("  inter_pulse_intervals: ", end="")
-            print(", ".join(f"{bd:.2f}" for bd in details['inter_pulse_intervals']))
+            print(", ".join(f"{bd:.2f}" for bd in details["inter_pulse_intervals"]))
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
