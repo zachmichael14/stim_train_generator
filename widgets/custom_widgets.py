@@ -1,43 +1,5 @@
 from PySide6 import QtWidgets, QtCore
 
-class TrainLengthWidget(QtWidgets.QWidget):
-    value_changed = QtCore.Signal(int)
-
-    def __init__(self):
-        super().__init__()
-        self.init_ui()
-
-    def init_ui(self):
-        main_layout = QtWidgets.QVBoxLayout(self)
-        self.groupbox = QtWidgets.QGroupBox("Amplitude Repetition Settings")
-        self.groupbox_layout = QtWidgets.QVBoxLayout(self.groupbox)
-
-        self.amplitude_repetitions_label = QtWidgets.QLabel("Repetitions per Amplitude:")
-        self.amplitude_repetitions_edit = QtWidgets.QLineEdit()
-        self.amplitude_repetitions_edit.setPlaceholderText("Enter repetitions")
-
-        self.amplitude_repetitions_edit.textChanged.connect(self.handle_repetition_changed)
-        
-        self.amplitude_repetitions_layout = QtWidgets.QHBoxLayout()
-        self.amplitude_repetitions_layout.addWidget(self.amplitude_repetitions_label)
-        self.amplitude_repetitions_layout.addWidget(self.amplitude_repetitions_edit)
-
-        self.groupbox_layout.addLayout(self.amplitude_repetitions_layout)
-
-        main_layout.addWidget(self.groupbox)
-        self.setLayout(main_layout)
-
-    def handle_repetition_changed(self):
-        if self.amplitude_repetitions_edit.text() != "":
-            try:
-                repetitions = int(self.amplitude_repetitions_edit.text())
-                self.value_changed.emit(repetitions)
-            except ValueError as e:
-                print(f"TrainLengthWidget can't convert repetitions to int: {e}")
-
-    def reset(self):
-        self.amplitude_repetitions_edit.clear()
-
 class ChannelAddWidget(QtWidgets.QWidget):
     channels_selected = QtCore.Signal(list)
 
@@ -81,43 +43,3 @@ class ChannelAddWidget(QtWidgets.QWidget):
         for checkbox in self.checkboxes:
             checkbox.setChecked(False)
         self.selected_channels = []
-
-
-class MiscSettingsWidget(QtWidgets.QWidget):
-    value_changed = QtCore.Signal(float)
-
-    def __init__(self):
-        super().__init__()
-        self.init_ui()
-
-    def init_ui(self):
-        main_layout = QtWidgets.QVBoxLayout(self)
-        groupbox = QtWidgets.QGroupBox("Miscellaneous Settings")
-        groupbox_layout = QtWidgets.QVBoxLayout(groupbox)
-
-        # Frequency (Hz)
-        self.frequency_label = QtWidgets.QLabel("Frequency (Hz)")
-        self.frequency_edit = QtWidgets.QLineEdit()
-        self.frequency_edit.setPlaceholderText("Enter frequency")
-        self.frequency_edit.textChanged.connect(self.handle_frequency_changed)
-
-        self.frequency_layout = QtWidgets.QHBoxLayout()
-        self.frequency_layout.addWidget(self.frequency_label)
-        self.frequency_layout.addWidget(self.frequency_edit)
-
-        # Add layouts to groupbox layout
-        groupbox_layout.addLayout(self.frequency_layout)
-
-        main_layout.addWidget(groupbox)
-        self.setLayout(main_layout)
-
-    def handle_frequency_changed(self):
-        if self.frequency_edit.text() != "":
-            try:
-                frequency = float(self.frequency_edit.text())
-                self.value_changed.emit(frequency)
-            except ValueError as e:
-                print(f"MiscSettingsWidget can't convert frequency to float: {e}")
-
-    def reset(self):
-        self.frequency_edit.clear()
