@@ -85,7 +85,7 @@ class IntervalWidget(QtWidgets.QWidget):
         pass
 
 
-class AmplitudeIntervalWidget(IntervalWidget):
+class AmplitudeWidget(IntervalWidget):
     def __init__(self):
         super().__init__("Amplitude Settings")
         self.repetition_widget = None
@@ -119,28 +119,29 @@ class AmplitudeIntervalWidget(IntervalWidget):
     
     def get_values(self):
         amplitudes = self.subwidget.get_values()
-        
         repetitions = 1
+
         if self.repetition_widget:
             repetitions = self.repetition_widget.get_values()
-
         return np.repeat(amplitudes, repetitions)
 
 
-class PulseLengthIntervalWidget(IntervalWidget):
+class PulseDurationWidget(IntervalWidget):
     def __init__(self):
         super().__init__("Pulse Duration Settings")
 
     def get_values(self):
-        pass
+        pulse_durations = self.subwidget.get_values()
+        return pulse_durations
 
 
-class InterPulseIntervalWidget(IntervalWidget):
+class InterPulseWidget(IntervalWidget):
     def __init__(self):
         super().__init__("Inter-pulse Interval Settings")
 
     def get_values(self):
-        pass
+        intervals = self.subwidget.get_values()
+        return intervals
 
 
 class FrequencyWidget(IntervalWidget):
@@ -148,4 +149,5 @@ class FrequencyWidget(IntervalWidget):
         super().__init__("Frequency Settings")
         
     def get_values(self):
-        pass
+        frequencies = self.subwidget.get_values()
+        return frequencies
