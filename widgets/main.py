@@ -39,24 +39,15 @@ class MainWidget(QtWidgets.QWidget):
         self.amplitude_widget = interval_widgets.AmplitudeIntervalWidget()
         self.pulse_length_widget = interval_widgets.PulseLengthIntervalWidget()
         self.interpulse_interval = interval_widgets.InterPulseIntervalWidget()
-
-        self.amplitude_widget.value_changed.connect(self.train.handle_amplitude_change)
-        self.pulse_length_widget.value_changed.connect(self.train.handle_pulse_duration_change)
-        self.interpulse_interval.value_changed.connect(self.train.handle_break_change)
+        self.frequency_widget = interval_widgets.FrequencyWidget()
 
         main_layout.addWidget(self.amplitude_widget, 0, 0)
+        main_layout.addWidget(self.interpulse_interval, 0, 1)
+
         main_layout.addWidget(self.pulse_length_widget, 1, 0)
-        main_layout.addWidget(self.interpulse_interval, 2, 0)
+        main_layout.addWidget(self.frequency_widget, 1, 1)
 
-        self.train_length_widget = custom_widgets.TrainLengthWidget()
-        self.train_length_widget.value_changed.connect(self.train.handle_repetition_changed)
-        
-        self.misc_settings_widget = custom_widgets.MiscSettingsWidget()
-        self.misc_settings_widget.value_changed.connect(self.train.handle_frequency_changed)
-
-        main_layout.addWidget(self.train_length_widget, 0, 1)
-        main_layout.addWidget(self.misc_settings_widget, 1, 1)
-
+    
         self.channel_add_widget = custom_widgets.ChannelAddWidget()
         self.channel_add_widget.channels_selected.connect(self.handle_add_button)
 
@@ -64,6 +55,7 @@ class MainWidget(QtWidgets.QWidget):
         self.setLayout(main_layout)
 
     def handle_add_button(self, channels):
+        print(self.amplitude_widget.get_values())
         for channel in channels:
             self.train.trains[channel] = {
                 "amplitudes": self.train.amplitudes,
@@ -71,6 +63,7 @@ class MainWidget(QtWidgets.QWidget):
                 "pulse_durations": self.train.pulse_durations,
                 "inter_pulse_intervals": self.train.inter_pulse_intervals
             }
+        
 
         self.reset_to_default()
         plotter = plotter_widget.StimTrainPlotter(self.train.trains)
