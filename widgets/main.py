@@ -36,9 +36,9 @@ class MainWidget(QtWidgets.QWidget):
     def init_ui(self):
         main_layout = QtWidgets.QGridLayout(self)
 
-        self.amplitude_widget = interval_widgets.AmplitudeIntervalWidget()
-        self.pulse_length_widget = interval_widgets.PulseLengthIntervalWidget()
-        self.interpulse_interval = interval_widgets.InterPulseIntervalWidget()
+        self.amplitude_widget = interval_widgets.AmplitudeWidget()
+        self.pulse_length_widget = interval_widgets.PulseDurationWidget()
+        self.interpulse_interval = interval_widgets.InterPulseWidget()
         self.frequency_widget = interval_widgets.FrequencyWidget()
 
         main_layout.addWidget(self.amplitude_widget, 0, 0)
