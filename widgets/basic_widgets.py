@@ -33,6 +33,12 @@ class SingleTextFieldWidget(QtWidgets.QWidget):
         except ValueError as e:
             print(f"SingleTextFieldWidget Error: {e}")
 
+    def reset(self):
+        """
+        Clear the text field to reset the widget.
+        """
+        self.text_input.clear()
+
 
 class LinearWidget(QtWidgets.QWidget):
     """Widget for specifying a range and generating linearly spaced values."""
@@ -79,7 +85,15 @@ class LinearWidget(QtWidgets.QWidget):
         except ValueError as e:
             print(f"RampWidget Error: {e}")
 
-    
+    def reset(self):
+        """
+        Clear all text fields to reset the widget.
+        """
+        self.start_input.clear()
+        self.stop_input.clear()
+        self.points_input.clear()
+
+
 class FunctionWidget(QtWidgets.QWidget):
     """Widget for selecting a function from a dropdown menu."""
 
@@ -111,3 +125,9 @@ class FunctionWidget(QtWidgets.QWidget):
             dict: A dictionary containing the selected function name.
         """
         return {"function": self.function_dropdown.currentText()}
+
+    def reset(self):
+        """
+        Reset the dropdown to the default option (first item).
+        """
+        self.function_dropdown.setCurrentIndex(0)
