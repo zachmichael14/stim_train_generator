@@ -1,6 +1,7 @@
 from typing import List
 
-from PySide6 import QtWidgets, QtCore
+from PySide6 import QtWidgets
+from PySide6.QtCore import Signal
 
 class ChannelAddWidget(QtWidgets.QWidget):
     """
@@ -10,7 +11,7 @@ class ChannelAddWidget(QtWidgets.QWidget):
         channels_selected (QtCore.Signal): Signal that emits list of selected
         channels whenever channels are toggled.
     """
-    channels_selected = QtCore.Signal(list)
+    channels_selected = Signal(list)
 
     def __init__(self):
         """
