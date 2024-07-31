@@ -15,12 +15,11 @@ class SingleTextFieldWidget(QtWidgets.QWidget):
         self.text_input = QtWidgets.QLineEdit()
 
         main_layout = QtWidgets.QHBoxLayout()
+        self.setLayout(main_layout)    
 
         text_label = QtWidgets.QLabel(label)
         main_layout.addWidget(text_label)
         main_layout.addWidget(self.text_input)
-
-        self.setLayout(main_layout)    
 
     def get_values(self):
         """
@@ -45,6 +44,7 @@ class LinearWidget(QtWidgets.QWidget):
         self.points_input = QtWidgets.QLineEdit()
 
         main_layout = QtWidgets.QVBoxLayout()
+        self.setLayout(main_layout)
 
         start_layout = QtWidgets.QHBoxLayout()
         start_label = QtWidgets.QLabel("Start:")
@@ -63,8 +63,6 @@ class LinearWidget(QtWidgets.QWidget):
         points_layout.addWidget(points_label)
         points_layout.addWidget(self.points_input)
         main_layout.addLayout(points_layout)
-
-        self.setLayout(main_layout)
 
     def get_values(self):
         """
@@ -97,9 +95,9 @@ class FunctionWidget(QtWidgets.QWidget):
         self.function_dropdown.addItems(options)    
 
         main_layout = QtWidgets.QHBoxLayout()
-        main_layout.addWidget(self.function_dropdown)
-
         self.setLayout(main_layout)
+
+        main_layout.addWidget(self.function_dropdown)
 
     def get_values(self):
         """
