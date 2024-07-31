@@ -1,5 +1,5 @@
-from PySide6 import QtWidgets
 import numpy as np
+from PySide6 import QtWidgets
 
 class SingleTextFieldWidget(QtWidgets.QWidget):
 
