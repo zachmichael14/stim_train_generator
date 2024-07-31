@@ -2,8 +2,8 @@ import numpy as np
 from PySide6 import QtWidgets
 
 class SingleTextFieldWidget(QtWidgets.QWidget):
-
     """Widget for entering a single numeric value via a text field."""
+    
     def __init__(self, label: str="Constant:"):
         """
         Initialize the SingleTextFieldWidget with a label and text field.
