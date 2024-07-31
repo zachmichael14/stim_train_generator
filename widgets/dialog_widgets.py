@@ -1,63 +1,120 @@
-from PySide6.QtWidgets import (QVBoxLayout, QLineEdit, QLabel, QPushButton, QDialog, QHBoxLayout, QDialogButtonBox)
+from PySide6 import QtWidgets
+from PySide6.QtCore import QObject
 
-class PulseEditDialog(QDialog):
-    def __init__(self, amplitude=1, frequency=60, duration=50, parent=None):
+class PulseEditDialog(QtWidgets.QDialog):
+    """
+    Pop-up dialog for editing pulse amplitude, frequency, and duration.
+    """
+
+    def __init__(self,
+                 amplitude: float = 0,
+                 frequency: float = 60,
+                 duration: float = 50,
+                 parent: QObject = None):
+        """
+        Initialize with the given parameters.
+
+        Args:
+            amplitude (float): Initial amplitude value in mA.
+            frequency (float): Initial frequency value in Hz.
+            duration (float): Initial duration value in ms.
+            parent (QObject, optional): Parent widget/window for the dialog. Default is None.
+        """
         super().__init__(parent)
+        self.setWindowTitle(f"Edit Pulse")
+
         self.amplitude = amplitude
         self.frequency = frequency
         self.duration = duration
-        self.setup_ui()
 
-    def setup_ui(self):
-        self.setWindowTitle(f"Edit Pulse")
-        layout = QVBoxLayout(self)
+        self.amplitude_input = QtWidgets.QLineEdit(str(self.amplitude), self)
+        self.frequency_input = QtWidgets.QLineEdit(str(self.frequency), self)
+        self.duration_input = QtWidgets.QLineEdit(str(self.duration), self)
 
-        self.amplitude_label = QLabel("Amplitude (mA):", self)
-        self.amplitude_input = QLineEdit(str(self.amplitude), self)
-        layout.addWidget(self.amplitude_label)
-        layout.addWidget(self.amplitude_input)
+        self.init_main_layout()
 
-        self.frequency_label = QLabel("Frequency (Hz):", self)
-        self.frequency_input = QLineEdit(str(self.frequency), self)
-        layout.addWidget(self.frequency_label)
-        layout.addWidget(self.frequency_input)
+    def init_main_layout(self):
+        """
+        Set up the main layout for the dialog, including input fields for
+        amplitude, frequency, and duration.
+        """
+        main_layout = QtWidgets.QVBoxLayout(self)
 
-        self.duration_label = QLabel("Duration (ms):", self)
-        self.duration_input = QLineEdit(str(self.duration), self)
-        layout.addWidget(self.duration_label)
-        layout.addWidget(self.duration_input)
+        amplitude_label = QtWidgets.QLabel("Amplitude (mA):", self)
+        main_layout.addWidget(amplitude_label)
+        main_layout.addWidget(self.amplitude_input)
 
-        button_layout = QHBoxLayout()
-        self.ok_button = QPushButton("OK", self)
-        self.cancel_button = QPushButton("Cancel", self)
-        self.ok_button.clicked.connect(self.accept)
-        self.cancel_button.clicked.connect(self.reject)
-        button_layout.addWidget(self.ok_button)
-        button_layout.addWidget(self.cancel_button)
-        layout.addLayout(button_layout)
+        frequency_label = QtWidgets.QLabel("Frequency (Hz):", self)
+        main_layout.addWidget(frequency_label)
+        main_layout.addWidget(self.frequency_input)
+
+        duration_label = QtWidgets.QLabel("Duration (ms):", self)
+        main_layout.addWidget(duration_label)
+        main_layout.addWidget(self.duration_input)
+
+        buttons = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok |
+                                             QtWidgets.QDialogButtonBox.Cancel,
+                                             self)
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        main_layout.addLayout(buttons)
 
     def get_values(self):
+        """
+        Retrieve the current values of amplitude, frequency, and duration from the input fields.
+
+        Returns:
+            tuple (float, float, float): A tuple containing amplitude (mA), frequency (Hz), and duration (ms).
+        """
         return (float(self.amplitude_input.text()),
                 float(self.frequency_input.text()),
                 float(self.duration_input.text()))
-    
 
-class IntervalEditDialog(QDialog):
-    def __init__(self, duration=50, parent=None):
+
+class IntervalEditDialog(QtWidgets.QDialog):
+    """
+    Pop-up dialog for editing the time between bursts.
+
+    Attributes:
+        duration (float): Duration of the interval in milliseconds.
+    """
+
+    def __init__(self, duration: float = 50, parent: QObject = None):
+        """
+        Initialize with the given duration.
+
+        Args:
+            duration (float): Initial duration value in ms.
+            parent (QObject, optional): Parent widget/window for the dialog. Default is None.
+        """
         super().__init__(parent)
-        self.setWindowTitle("Edit Interval")
-        layout = QVBoxLayout(self)
+        self.setWindowTitle("Edit Inter-burst Interval")
+
         self.duration = duration
+        self.duration_input = QtWidgets.QLineEdit(str(self.duration), self)
+        self.init_main_layout()
 
-        self.duration_input = QLineEdit(str(self.duration), self)
-        layout.addWidget(QLabel("Duration (ms):"))
-        layout.addWidget(self.duration_input)
+    def init_main_layout(self):
+        """
+        Set up the main layout with an input field for the duration.
+        """
+        main_layout = QtWidgets.QVBoxLayout(self)
 
-        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, self)
+        main_layout.addWidget(QtWidgets.QLabel("Duration (ms):"))
+        main_layout.addWidget(self.duration_input)
+
+        buttons = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok |
+                                             QtWidgets.QDialogButtonBox.Cancel,
+                                             self)
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
-        layout.addWidget(buttons)
+        main_layout.addWidget(buttons)
 
     def get_value(self):
+        """
+        Retrieve the current interval duration from the input field.
+
+        Returns:
+            float: The interval duration in milliseconds.
+        """
         return float(self.duration_input.text())
-    
