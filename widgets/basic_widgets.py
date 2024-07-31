@@ -3,7 +3,7 @@ from PySide6 import QtWidgets
 
 class SingleTextFieldWidget(QtWidgets.QWidget):
     """Widget for entering a single numeric value via a text field."""
-    
+
     def __init__(self, label: str="Constant:"):
         """
         Initialize the SingleTextFieldWidget with a label and text field.
@@ -12,13 +12,13 @@ class SingleTextFieldWidget(QtWidgets.QWidget):
             label (str): The label displayed next to the text field.
         """
         super().__init__()
-        self.text_edit = QtWidgets.QLineEdit()
+        self.text_input = QtWidgets.QLineEdit()
 
         main_layout = QtWidgets.QHBoxLayout()
 
         text_label = QtWidgets.QLabel(label)
         main_layout.addWidget(text_label)
-        main_layout.addWidget(self.text_edit)
+        main_layout.addWidget(self.text_input)
 
         self.setLayout(main_layout)    
 
@@ -30,7 +30,7 @@ class SingleTextFieldWidget(QtWidgets.QWidget):
             np.ndarray: A numpy array containing the single entered value.
         """
         try:
-            return float(self.text_edit.text())
+            return float(self.text_input.text())
         except ValueError as e:
             print(f"SingleTextFieldWidget Error: {e}")
 
@@ -40,28 +40,28 @@ class LinearWidget(QtWidgets.QWidget):
 
     def __init__(self):
         super().__init__()
-        self.start_edit = QtWidgets.QLineEdit()
-        self.stop_edit = QtWidgets.QLineEdit()
-        self.points_edit = QtWidgets.QLineEdit()
+        self.start_input = QtWidgets.QLineEdit()
+        self.stop_input = QtWidgets.QLineEdit()
+        self.points_input = QtWidgets.QLineEdit()
 
         main_layout = QtWidgets.QVBoxLayout()
 
         start_layout = QtWidgets.QHBoxLayout()
         start_label = QtWidgets.QLabel("Start:")
         start_layout.addWidget(start_label)
-        start_layout.addWidget(self.start_edit)
+        start_layout.addWidget(self.start_input)
         main_layout.addLayout(start_layout)
 
         stop_layout = QtWidgets.QHBoxLayout()
         stop_label = QtWidgets.QLabel("Stop:")
         stop_layout.addWidget(stop_label)
-        stop_layout.addWidget(self.stop_edit)
+        stop_layout.addWidget(self.stop_input)
         main_layout.addLayout(stop_layout)
 
         points_layout = QtWidgets.QHBoxLayout()
         points_label = QtWidgets.QLabel("Number of Points:")
         points_layout.addWidget(points_label)
-        points_layout.addWidget(self.points_edit)
+        points_layout.addWidget(self.points_input)
         main_layout.addLayout(points_layout)
 
         self.setLayout(main_layout)
@@ -74,9 +74,9 @@ class LinearWidget(QtWidgets.QWidget):
             np.ndarray: A numpy array of linearly spaced values from start to stop.
         """
         try:
-            start = float(self.start_edit.text())
-            stop = float(self.stop_edit.text())
-            points = int(self.points_edit.text())
+            start = float(self.start_input.text())
+            stop = float(self.stop_input.text())
+            points = int(self.points_input.text())
             return np.linspace(start, stop, points)
         except ValueError as e:
             print(f"RampWidget Error: {e}")
