@@ -1,7 +1,8 @@
 from abc import abstractmethod
 
 import numpy as np
-from PySide6 import QtWidgets, QtCore
+from PySide6 import QtWidgets
+from PySide6.QtCore import Signal
 
 from widgets import basic_widgets
 
@@ -24,7 +25,7 @@ class IntervalWidget(QtWidgets.QWidget):
         subwidget (QtWidgets.QWidget): Current subwidget based on the selected
             mode.
     """
-    mode_changed = QtCore.Signal()
+    mode_changed = Signal()
 
     def __init__(self, title: str):
         """
