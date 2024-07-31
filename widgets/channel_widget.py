@@ -20,13 +20,15 @@ class ChannelAddWidget(QtWidgets.QWidget):
         # Store checkbox references so they can be reset
         self.checkboxes: List[QtWidgets.QCheckBox] = []
         self.selected_channels: List[int] = []
-        self.init_ui()
+        self.init_main_layout()
 
-    def init_ui(self):
+    def init_main_layout(self):
         """
         Set up the user interface with a group box containing checkboxes for each channel.
         """
         main_layout = QtWidgets.QVBoxLayout(self)
+        self.setLayout(main_layout)
+
         groupbox = QtWidgets.QGroupBox("Add Train to Channel(s)")
         groupbox_layout = QtWidgets.QHBoxLayout(groupbox)
 
@@ -40,7 +42,6 @@ class ChannelAddWidget(QtWidgets.QWidget):
             self.checkboxes.append(checkbox)
 
         main_layout.addWidget(groupbox)
-        self.setLayout(main_layout)
 
     def get_values(self):
         """
