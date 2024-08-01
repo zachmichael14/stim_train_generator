@@ -36,51 +36,39 @@ class IntervalWidget(QtWidgets.QWidget):
             title (str): Title for the widget.
         """
         super().__init__()
+
         self.constant_button = QtWidgets.QRadioButton("Constant", self)
         self.constant_button.setChecked(True)
         self.linear_button = QtWidgets.QRadioButton("Linear", self)
         self.function_button = QtWidgets.QRadioButton("Function", self)
 
-        # Default to constant mode
         self.subwidget = basic_widgets.SingleTextFieldWidget()  
-        subwidget_container = QtWidgets.QWidget()
-        self.subwidget_layout = QtWidgets.QVBoxLayout(subwidget_container)
-        self.subwidget_layout.addWidget(self.subwidget)
 
-        self.init_main_layout(title, subwidget_container)
-
-    def init_main_layout(self,
-                         title: str,
-                         subwidget_container: QtWidgets.QWidget):
-        """
-        Initialize the main layout for the widget.
-
-        Args:
-            title (str): Title for the mode group.
-            subwidget_container (QtWidgets.QWidget): Container for the subwidget.
-        """
-        main_layout = QtWidgets.QVBoxLayout(self)
-        self.setLayout(main_layout)
+        
+        self.main_layout = QtWidgets.QVBoxLayout(self)
+        self.setLayout(self.main_layout)
 
         mode_groupbox = QtWidgets.QGroupBox(f"{title}")
-        mode_layout = QtWidgets.QVBoxLayout(mode_groupbox)
+        self.mode_layout = QtWidgets.QVBoxLayout(mode_groupbox)
 
         # As a QButtonGroup, mode_selector makes buttons mutually exclusive. 
         mode_selector = QtWidgets.QButtonGroup(self)
         mode_selector.buttonClicked.connect(self.handle_mode_selector)
-        mode_selector.addButton(self.constant_button)
-        mode_selector.addButton(self.linear_button)
-        mode_selector.addButton(self.function_button)
-
         selector_layout = QtWidgets.QHBoxLayout()
-        selector_layout.addWidget(self.constant_button)
-        selector_layout.addWidget(self.linear_button)
-        selector_layout.addWidget(self.function_button)
-        mode_layout.addLayout(selector_layout)
 
-        mode_layout.addWidget(subwidget_container)
+        self.button_map = {
+            self.constant_button: basic_widgets.SingleTextFieldWidget,
+            self.linear_button: basic_widgets.LinearWidget,
+            self.function_button: basic_widgets.FunctionWidget,
+        }
 
-        main_layout.addWidget(mode_groupbox)
+        for button, subwidget in self.button_map.items():
+            mode_selector.addButton(button)
+            selector_layout.addWidget(button)
+
+        self.mode_layout.addLayout(selector_layout)
+        self.mode_layout.addWidget(self.subwidget)
+        self.main_layout.addWidget(mode_groupbox)
 
     def handle_mode_selector(self, button: QtWidgets.QRadioButton):
         """
@@ -90,13 +78,9 @@ class IntervalWidget(QtWidgets.QWidget):
         Args:
             button (QtWidgets.QRadioButton): The button that was clicked.
         """
-        button_map = {
-            self.constant_button: basic_widgets.SingleTextFieldWidget,
-            self.linear_button: basic_widgets.LinearWidget,
-            self.function_button: basic_widgets.FunctionWidget,
-        }
+        
 
-        self.show_new_subwidget(button_map[button])
+        self.show_new_subwidget(self.button_map[button])
         self.mode_changed.emit()
 
     def show_new_subwidget(self, widget_class: QtWidgets.QWidget):
@@ -108,8 +92,13 @@ class IntervalWidget(QtWidgets.QWidget):
         """
         self.subwidget.deleteLater()
         new_subwidget = widget_class()
-        self.subwidget_layout.replaceWidget(self.subwidget, new_subwidget)
+        new_subwidget.values_ready_signal.connect(self.handle_values)
+        self.mode_layout.replaceWidget(self.subwidget, new_subwidget)
         self.subwidget = new_subwidget
+
+    def handle_values(self):
+        sender = self.sender()
+
 
     def get_current_mode(self):
         """
@@ -176,13 +165,13 @@ class AmplitudeWidget(IntervalWidget):
         
         label_text = self.get_label_text(current_mode)
         self.repetition_widget = basic_widgets.SingleTextFieldWidget(label_text)
-        self.subwidget_layout.addWidget(self.repetition_widget)
+        self.mode_layout.addWidget(self.repetition_widget)
 
     def remove_current_subwidget(self):
         """
         Remove and delete the current repetition subwidget.
         """
-        self.subwidget_layout.removeWidget(self.repetition_widget)
+        self.main_layout.removeWidget(self.repetition_widget)
         self.repetition_widget.deleteLater()
         self.repetition_widget = None
 
