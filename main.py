@@ -12,6 +12,15 @@ from widgets import stim_train_widget
 # Control_window will also no longer need create_stim_trian since that si 
 # handled by the stim manager now. It'll need access to the stim manager
 
+## TODO: Validat base widget values with QtGui.QValidator
+
+"""
+
+
+
+
+"""
+
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     window = QtWidgets.QMainWindow()
