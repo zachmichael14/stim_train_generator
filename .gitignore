@@ -1,0 +1,22 @@
+# Ignore environment-specific files
+.env
+
+# Ignore PyCharm files
+.idea/
+
+# Ignore Visual Studio Code settings
+.vscode/
+
+# Ignore compiled Python files
+build/
+dist/
+
+# Ignore logs
+*.log
+
+# Ignore temporary files
+*.tmp
+
+# Python specific
+*.pyc
+__pycache__/
