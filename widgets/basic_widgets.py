@@ -1,8 +1,11 @@
 import numpy as np
+
 from PySide6 import QtWidgets
+from PySide6.QtCore import Signal
 
 class SingleTextFieldWidget(QtWidgets.QWidget):
     """Widget for entering a single numeric value via a text field."""
+    values_ready_signal= Signal(str)
 
     def __init__(self, label: str="Constant:"):
         """
@@ -12,7 +15,9 @@ class SingleTextFieldWidget(QtWidgets.QWidget):
             label (str): The label displayed next to the text field.
         """
         super().__init__()
+        self.text: str = None
         self.text_input = QtWidgets.QLineEdit()
+        self.text_input.textEdited.connect(self.handle_field_edited)
 
         main_layout = QtWidgets.QHBoxLayout()
         self.setLayout(main_layout)    
@@ -21,17 +26,19 @@ class SingleTextFieldWidget(QtWidgets.QWidget):
         main_layout.addWidget(text_label)
         main_layout.addWidget(self.text_input)
 
+    def handle_field_edited(self, text: str):
+        self.text = text
+        if self.text:
+            self.values_ready_signal.emit(self.text)
+
     def get_values(self):
         """
         Retrieve the value entered in the text field.
 
         Returns:
-            np.ndarray: A numpy array containing the single entered value.
+            str: The value entered in the text field
         """
-        try:
-            return float(self.text_input.text())
-        except ValueError as e:
-            print(f"SingleTextFieldWidget Error: {e}")
+        return self.text
 
     def reset(self):
         """
@@ -41,34 +48,51 @@ class SingleTextFieldWidget(QtWidgets.QWidget):
 
 
 class LinearWidget(QtWidgets.QWidget):
-    """Widget for specifying a range and generating linearly spaced values."""
+    """Widget for specifying a range for generating linearly spaced values."""
+    values_ready_signal = Signal(dict)
 
     def __init__(self):
         super().__init__()
+        self.start: str = None
+        self.stop: str = None
+        self.points: str = None
+
         self.start_input = QtWidgets.QLineEdit()
         self.stop_input = QtWidgets.QLineEdit()
         self.points_input = QtWidgets.QLineEdit()
 
+        # Attribute map allows inputs to be mapped to attributes dyamically;
+        # it's especially useful when handling edits to inputs
+        self.attribute_map = {
+            self.start_input: "start",
+            self.stop_input: "stop",
+            self.points_input: "points",
+        }
+
+        self.init_main_layout()
+
+    def init_main_layout(self):
         main_layout = QtWidgets.QVBoxLayout()
         self.setLayout(main_layout)
 
-        start_layout = QtWidgets.QHBoxLayout()
-        start_label = QtWidgets.QLabel("Start:")
-        start_layout.addWidget(start_label)
-        start_layout.addWidget(self.start_input)
-        main_layout.addLayout(start_layout)
+        for input, label in self.attribute_map.items():
+            # Build sublayout for each attribute
+            layout = QtWidgets.QHBoxLayout()
+            label = QtWidgets.QLabel(f"{label.capitalize()}:")
+            layout.addWidget(label)
+            layout.addWidget(input)
+            main_layout.addLayout(layout)
 
-        stop_layout = QtWidgets.QHBoxLayout()
-        stop_label = QtWidgets.QLabel("Stop:")
-        stop_layout.addWidget(stop_label)
-        stop_layout.addWidget(self.stop_input)
-        main_layout.addLayout(stop_layout)
+            # Connect handler to inputs
+            input.editingFinished.connect(self.handle_field_edited)
 
-        points_layout = QtWidgets.QHBoxLayout()
-        points_label = QtWidgets.QLabel("Number of Points:")
-        points_layout.addWidget(points_label)
-        points_layout.addWidget(self.points_input)
-        main_layout.addLayout(points_layout)
+    def handle_field_edited(self):
+        # Sender is the method caller (i.e, the widget calling the function)
+        sender = self.sender()
+        setattr(self, self.attribute_map[sender], sender.text())
+
+        if all([self.start, self.stop, self.points]):
+            self.values_ready_signal.emit(self.get_values())
 
     def get_values(self):
         """
@@ -77,13 +101,7 @@ class LinearWidget(QtWidgets.QWidget):
         Returns:
             np.ndarray: A numpy array of linearly spaced values from start to stop.
         """
-        try:
-            start = float(self.start_input.text())
-            stop = float(self.stop_input.text())
-            points = int(self.points_input.text())
-            return np.linspace(start, stop, points)
-        except ValueError as e:
-            print(f"RampWidget Error: {e}")
+        return {"start": self.start, "stop": self.stop, "points": self.points}
 
     def reset(self):
         """
