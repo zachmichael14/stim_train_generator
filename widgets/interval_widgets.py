@@ -35,13 +35,13 @@ class IntervalWidget(QtWidgets.QWidget):
         self.button_layout = QtWidgets.QHBoxLayout()
         self.init_mode_buttons()
 
+        self.groupbox_layout = QtWidgets.QVBoxLayout()
+        self.groupbox_layout.addLayout(self.button_layout)
+        self.widget_groupbox.setLayout(self.groupbox_layout)
+
         self.subwidget = None
         self.show_subwidget(basic_widgets.SingleTextFieldWidget)
 
-        self.groupbox_layout = QtWidgets.QVBoxLayout()
-        self.groupbox_layout.addLayout(self.button_layout)
-        self.groupbox_layout.addWidget(self.subwidget)
-        self.widget_groupbox.setLayout(self.groupbox_layout)
 
         self.main_layout = QtWidgets.QVBoxLayout()
         self.main_layout.addWidget(self.widget_groupbox)
@@ -80,6 +80,7 @@ class IntervalWidget(QtWidgets.QWidget):
         subwidget = widget_class()
         subwidget.values_ready_signal.connect(self.process_values)
         self.subwidget = subwidget
+        self.groupbox_layout.addWidget(self.subwidget)
 
     def remove_subwidget(self):
         self.groupbox_layout.removeWidget(self.subwidget)
@@ -185,6 +186,7 @@ class AmplitudeWidget(IntervalWidget):
 
         label_text = self.get_label_text(current_mode)
         self.repetition_widget = basic_widgets.SingleTextFieldWidget(label_text)
+        # self.repetition_widget.values_ready_signal.connect(self.)
         self.groupbox_layout.addWidget(self.repetition_widget)
 
     def remove_current_subwidget(self):
