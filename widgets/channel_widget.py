@@ -33,16 +33,18 @@ class ChannelAddWidget(QtWidgets.QWidget, BaseWidget):
 
         for i in range(1, 9):
             checkbox = QtWidgets.QCheckBox(f"Channel {i}")
+            # Add an id attr to each box so handling state changes is easier
+            checkbox.id = i
 
             # Lambda fxn allows state and id to be passed to handle_checkbox
-            checkbox.stateChanged.connect(lambda state, id=i: self.handle_checkbox(id, state))
+            checkbox.stateChanged.connect(self.handle_values_edited)
 
             groupbox_layout.addWidget(checkbox)
             self.checkboxes[checkbox] = checkbox.isChecked()
 
         main_layout.addWidget(groupbox)
 
-    def handle_values_edited(self, id: int, state: int):
+    def handle_values_edited(self, state):
         """
         Update the selected channels list based on checkbox state.
         
@@ -51,11 +53,7 @@ class ChannelAddWidget(QtWidgets.QWidget, BaseWidget):
             state (int): The state of the checkbox (checked or unchecked).
         """
         checkbox = self.sender()
-        print(checkbox)
-        if state == 2:  # Checked state
-            pass
-        elif id in self.selected_channels:
-            self.selected_channels.remove(id)
+        self.checkboxes[checkbox] = checkbox.isChecked()
 
     def get_values(self):
         """
@@ -70,6 +68,6 @@ class ChannelAddWidget(QtWidgets.QWidget, BaseWidget):
         """
         Reset all checkboxes to their default (unchecked) state and clear the selected channels list.
         """
-        for checkbox, state in self.checkboxes.items():
+        for checkbox in self.checkboxes.keys():
             checkbox.setChecked(False)
-            state = False
+            self.checkboxes[checkbox] = False
