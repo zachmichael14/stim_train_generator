@@ -14,6 +14,9 @@ from widgets import stim_train_widget
 
 ## TODO: Validat base widget values with QtGui.QValidator
 
+## TODO: get rid of value attribute in base widgets? do base widget need value attrs or cna values just be grabbed form the QLineEidt boxes. 
+
+
 """
 
 
