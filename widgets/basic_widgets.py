@@ -11,11 +11,11 @@ class BaseWidget(ABC, metaclass=QtABCMeta):
     values_ready_signal = Signal(dict)
 
     @abstractmethod
-    def handle_field_edited(self):
+    def handle_values_edited(self):
         """
         Handle changes to field values. Must be implemented in subclasses.
         """
-        raise NotImplementedError("Subclasses must implement a `handle_field_edited` method.")
+        raise NotImplementedError("Subclasses must implement a `handle_values_edited` method.")
 
     @abstractmethod
     def get_values(self) -> Dict:
@@ -48,7 +48,7 @@ class SingleTextFieldWidget(QtWidgets.QWidget, BaseWidget):
         BaseWidget.__init__(self)
         self.text: str = None
         self.text_input = QtWidgets.QLineEdit()
-        self.text_input.textEdited.connect(self.handle_field_edited)
+        self.text_input.textEdited.connect(self.handle_values_edited)
 
         main_layout = QtWidgets.QHBoxLayout()
         self.setLayout(main_layout)    
@@ -57,7 +57,7 @@ class SingleTextFieldWidget(QtWidgets.QWidget, BaseWidget):
         main_layout.addWidget(text_label)
         main_layout.addWidget(self.text_input)
 
-    def handle_field_edited(self, text: str):
+    def handle_values_edited(self, text: str):
         self.text = text
         if self.text:
             self.values_ready_signal.emit(self.get_values())
@@ -114,9 +114,9 @@ class LinearWidget(QtWidgets.QWidget, BaseWidget):
             main_layout.addLayout(layout)
 
             # Connect handler method to each attribute input field
-            input.editingFinished.connect(self.handle_field_edited)
+            input.editingFinished.connect(self.handle_values_edited)
 
-    def handle_field_edited(self):
+    def handle_values_edited(self):
         # Sender is the method caller (i.e, the widget calling the function)
         sender = self.sender()
         setattr(self, self.attribute_map[sender], sender.text())
