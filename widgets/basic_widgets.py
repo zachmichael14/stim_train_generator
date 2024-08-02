@@ -1,9 +1,30 @@
+from abc import abstractmethod
+from typing import Dict
+
 from PySide6 import QtWidgets
 from PySide6.QtCore import Signal
 
-class SingleTextFieldWidget(QtWidgets.QWidget):
+class BaseWidget(QtWidgets.QWidget):
+    values_ready_signal = Signal(Dict)
+
+    def __init__(self):
+        super().__init__()
+
+    @abstractmethod
+    def handle_field_edited(self):
+        pass
+        
+    @abstractmethod
+    def get_values(self):
+        pass
+
+    @abstractmethod
+    def reset(self):
+        pass
+
+
+class SingleTextFieldWidget(BaseWidget):
     """Widget for entering a single numeric value via a text field."""
-    values_ready_signal= Signal(str)
 
     def __init__(self, label: str="Constant:"):
         """
@@ -36,7 +57,7 @@ class SingleTextFieldWidget(QtWidgets.QWidget):
         Returns:
             str: The value entered in the text field
         """
-        return self.text
+        return {"constant": self.text}
 
     def reset(self):
         """
@@ -45,10 +66,8 @@ class SingleTextFieldWidget(QtWidgets.QWidget):
         self.text_input.clear()
 
 
-class LinearWidget(QtWidgets.QWidget):
+class LinearWidget(BaseWidget):
     """Widget for specifying a range for generating linearly spaced values."""
-    values_ready_signal = Signal(dict)
-
     def __init__(self):
         super().__init__()
         self.start: str = None
@@ -81,7 +100,7 @@ class LinearWidget(QtWidgets.QWidget):
             layout.addWidget(input)
             main_layout.addLayout(layout)
 
-            # Connect handler to inputs
+            # Connect handler method to each attribute input field
             input.editingFinished.connect(self.handle_field_edited)
 
     def handle_field_edited(self):
@@ -110,9 +129,8 @@ class LinearWidget(QtWidgets.QWidget):
         self.points_input.clear()
 
 
-class FunctionWidget(QtWidgets.QWidget):
+class FunctionWidget(BaseWidget):
     """Widget for selecting a function from a dropdown menu."""
-
     def __init__(self, options: list=["Option 1", "Option 2", "Option 3"]):
         """
         Initialize the FunctionWidget with a dropdown menu for function selection.
@@ -140,6 +158,7 @@ class FunctionWidget(QtWidgets.QWidget):
         Returns:
             dict: A dictionary containing the selected function name.
         """
+        self.values_ready_signal.emit({"function": self.function_dropdown.currentText()})
         return {"function": self.function_dropdown.currentText()}
 
     def reset(self):
