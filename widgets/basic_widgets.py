@@ -5,17 +5,32 @@ from PySide6 import QtWidgets
 from PySide6.QtCore import QObject, Signal
 
 class QtABCMeta(type(QObject), ABCMeta):
+    """
+    A metaclass that combines ABCMeta and QObject's metaclass to allow for
+    creating abstract base classes that are compatible with PyQt's object system.
+    """
     pass
 
 class BaseWidget(ABC, metaclass=QtABCMeta):
+    """
+    An abstract base class for widgets that emit values.
+    
+    This class defines the interface for widgets that expose input fields to
+    the user and retrieve current values for those fields. Values are emitted
+    for by signal for processing elsewhere. These widgets can also be reset to
+    a default state.
+    """
+
     values_ready_signal = Signal(dict)
 
     @abstractmethod
     def handle_values_edited(self):
         """
-        Handle changes to field values. Must be implemented in subclasses.
+        Handle changes to field values. This method should be called whenever
+        the widget's values are edited.
+        Must be implemented in subclasses.
         """
-        raise NotImplementedError("Subclasses must implement a `handle_values_edited` method.")
+        raise NotImplementedError("Subclass must implement a `handle_values_edited` method.")
 
     @abstractmethod
     def get_values(self) -> Dict:
@@ -25,17 +40,19 @@ class BaseWidget(ABC, metaclass=QtABCMeta):
         Returns:
             Dict: A dictionary of current values.
         """
-        raise NotImplementedError("Subclasses must implement a `get_values` method.")
+        raise NotImplementedError("Subclass must implement a `get_values` method.")
 
     @abstractmethod
     def reset(self):
         """
-        Reset the widget to its default state. Must be implemented in subclasses.
+        Reset the widget to its default state. This method should clear all
+        fields or set them to default values.
+        Must be implemented in subclasses.
         """
-        raise NotImplementedError("Subclasses must implement a `reset` method.")
+        raise NotImplementedError("Subclass must implement a `reset` method.")
 
 class SingleTextFieldWidget(QtWidgets.QWidget, BaseWidget):
-    """Widget for entering a single numeric value via a text field."""
+    """Widget for entering a single value via a text field."""
 
     def __init__(self, label: str="Constant:"):
         """
@@ -58,6 +75,12 @@ class SingleTextFieldWidget(QtWidgets.QWidget, BaseWidget):
         main_layout.addWidget(self.text_input)
 
     def handle_values_edited(self, text: str):
+        """
+        Handle changes to the text field.
+
+        Args:
+            text (str): The current text in the input field.
+        """
         self.text = text
         if self.text:
             self.values_ready_signal.emit(self.get_values())
@@ -67,7 +90,7 @@ class SingleTextFieldWidget(QtWidgets.QWidget, BaseWidget):
         Retrieve the value entered in the text field.
 
         Returns:
-            str: The value entered in the text field
+            Dict[str, str]: A dictionary with the key 'constant' and the entered value.
         """
         return {"constant": self.text}
 
@@ -79,7 +102,9 @@ class SingleTextFieldWidget(QtWidgets.QWidget, BaseWidget):
 
 
 class LinearWidget(QtWidgets.QWidget, BaseWidget):
-    """Widget for specifying a range for generating linearly spaced values."""
+    """Widget that allows users to specify a range for generating linearly
+    spaced values."""
+
     def __init__(self):
         QtWidgets.QWidget.__init__(self)
         BaseWidget.__init__(self)
@@ -117,19 +142,23 @@ class LinearWidget(QtWidgets.QWidget, BaseWidget):
             input.editingFinished.connect(self.handle_values_edited)
 
     def handle_values_edited(self):
+        """
+        Handle changes to any of the input fields.
+        """
         # Sender is the method caller (i.e, the widget calling the function)
         sender = self.sender()
         setattr(self, self.attribute_map[sender], sender.text())
 
+        # Only emit the signal after all values have been edited
         if all([self.start, self.stop, self.points]):
             self.values_ready_signal.emit(self.get_values())
 
     def get_values(self):
         """
-        Retrieve the linearly spaced values based on user input.
+        Retrieve spacing values based on user input.
 
         Returns:
-            np.ndarray: A numpy array of linearly spaced values from start to stop.
+            Dict[str, str]: A dictionary containing 'start', 'stop', and 'points' values.
         """
         return {"start": self.start, "stop": self.stop, "points": self.points}
 
@@ -144,12 +173,13 @@ class LinearWidget(QtWidgets.QWidget, BaseWidget):
 
 class FunctionWidget(QtWidgets.QWidget, BaseWidget):
     """Widget for selecting a function from a dropdown menu."""
+
     def __init__(self, options: list=["Option 1", "Option 2", "Option 3"]):
         """
         Initialize the FunctionWidget with a dropdown menu for function selection.
 
         Args:
-            options (list): List of options to display in the dropdown menu.
+            options (List[str]): List of options to display in the dropdown menu.
         """
         QtWidgets.QWidget.__init__(self)
         BaseWidget.__init__(self)
@@ -163,14 +193,13 @@ class FunctionWidget(QtWidgets.QWidget, BaseWidget):
 
     def get_values(self):
         """
+        Retrieve the selected function name from the dropdown menu.
+
         TODO: Eventually, this method will need to expose additional widgets
         that allow users to enter values for the chosen function's arguments.
-        
-        For now, it just retrieves the selected function name from the
-        dropdown menu.
 
         Returns:
-            dict: A dictionary containing the selected function name.
+            Dict[str, str]: A dictionary containing the selected function name.
         """
         self.values_ready_signal.emit({"function": self.function_dropdown.currentText()})
         return {"function": self.function_dropdown.currentText()}
