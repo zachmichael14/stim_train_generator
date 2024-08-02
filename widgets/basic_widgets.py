@@ -1,29 +1,40 @@
-from abc import abstractmethod
+from abc import ABC, ABCMeta, abstractmethod
 from typing import Dict
 
 from PySide6 import QtWidgets
-from PySide6.QtCore import Signal
+from PySide6.QtCore import QObject, Signal
 
-class BaseWidget(QtWidgets.QWidget):
-    values_ready_signal = Signal(Dict)
+class QtABCMeta(type(QObject), ABCMeta):
+    pass
 
-    def __init__(self):
-        super().__init__()
+class BaseWidget(ABC, metaclass=QtABCMeta):
+    values_ready_signal = Signal(dict)
 
     @abstractmethod
     def handle_field_edited(self):
-        pass
-        
+        """
+        Handle changes to field values. Must be implemented in subclasses.
+        """
+        raise NotImplementedError("Subclasses must implement a `handle_field_edited` method.")
+
     @abstractmethod
-    def get_values(self):
-        pass
+    def get_values(self) -> Dict:
+        """
+        Retrieve current values. Must be implemented in subclasses.
+
+        Returns:
+            Dict: A dictionary of current values.
+        """
+        raise NotImplementedError("Subclasses must implement a `get_values` method.")
 
     @abstractmethod
     def reset(self):
-        pass
+        """
+        Reset the widget to its default state. Must be implemented in subclasses.
+        """
+        raise NotImplementedError("Subclasses must implement a `reset` method.")
 
-
-class SingleTextFieldWidget(BaseWidget):
+class SingleTextFieldWidget(QtWidgets.QWidget, BaseWidget):
     """Widget for entering a single numeric value via a text field."""
 
     def __init__(self, label: str="Constant:"):
@@ -33,7 +44,8 @@ class SingleTextFieldWidget(BaseWidget):
         Args:
             label (str): The label displayed next to the text field.
         """
-        super().__init__()
+        QtWidgets.QWidget.__init__(self)
+        BaseWidget.__init__(self)
         self.text: str = None
         self.text_input = QtWidgets.QLineEdit()
         self.text_input.textEdited.connect(self.handle_field_edited)
@@ -48,7 +60,7 @@ class SingleTextFieldWidget(BaseWidget):
     def handle_field_edited(self, text: str):
         self.text = text
         if self.text:
-            self.values_ready_signal.emit(self.text)
+            self.values_ready_signal.emit(self.get_values())
 
     def get_values(self):
         """
@@ -66,10 +78,11 @@ class SingleTextFieldWidget(BaseWidget):
         self.text_input.clear()
 
 
-class LinearWidget(BaseWidget):
+class LinearWidget(QtWidgets.QWidget, BaseWidget):
     """Widget for specifying a range for generating linearly spaced values."""
     def __init__(self):
-        super().__init__()
+        QtWidgets.QWidget.__init__(self)
+        BaseWidget.__init__(self)
         self.start: str = None
         self.stop: str = None
         self.points: str = None
@@ -129,7 +142,7 @@ class LinearWidget(BaseWidget):
         self.points_input.clear()
 
 
-class FunctionWidget(BaseWidget):
+class FunctionWidget(QtWidgets.QWidget, BaseWidget):
     """Widget for selecting a function from a dropdown menu."""
     def __init__(self, options: list=["Option 1", "Option 2", "Option 3"]):
         """
@@ -138,7 +151,8 @@ class FunctionWidget(BaseWidget):
         Args:
             options (list): List of options to display in the dropdown menu.
         """
-        super().__init__()
+        QtWidgets.QWidget.__init__(self)
+        BaseWidget.__init__(self)
         self.function_dropdown = QtWidgets.QComboBox()
         self.function_dropdown.addItems(options)    
 
