@@ -1,9 +1,9 @@
 from typing import Dict
 
 from PySide6 import QtWidgets
-from widgets.basic_widgets import BaseWidget
+from PySide6.QtCore import Signal
 
-class ChannelAddWidget(QtWidgets.QWidget, BaseWidget):
+class ChannelAddWidget(QtWidgets.QWidget):
     """
     Widget for selecting multiple channels via checkboxes and emitting the selected channels.
     
@@ -11,6 +11,7 @@ class ChannelAddWidget(QtWidgets.QWidget, BaseWidget):
         channels_selected (QtCore.Signal): Signal that emits list of selected
         channels whenever channels are toggled.
     """
+    values_ready_signal = Signal()
 
     def __init__(self):
         """
@@ -33,18 +34,14 @@ class ChannelAddWidget(QtWidgets.QWidget, BaseWidget):
 
         for i in range(1, 9):
             checkbox = QtWidgets.QCheckBox(f"Channel {i}")
-            # Add an id attr to each box so handling state changes is easier
-            checkbox.id = i
-
-            # Lambda fxn allows state and id to be passed to handle_checkbox
-            checkbox.stateChanged.connect(self.handle_values_edited)
+            checkbox.stateChanged.connect(self.input_received_callback)
 
             groupbox_layout.addWidget(checkbox)
             self.checkboxes[checkbox] = checkbox.isChecked()
 
         main_layout.addWidget(groupbox)
 
-    def handle_values_edited(self, state):
+    def input_received_callback(self, state):
         """
         Update the selected channels list based on checkbox state.
         
