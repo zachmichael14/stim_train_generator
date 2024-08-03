@@ -1,98 +1,43 @@
-from abc import ABC, ABCMeta, abstractmethod
-from typing import Dict
-
+import numpy as np
 from PySide6 import QtWidgets
-from PySide6.QtCore import QObject, Signal
+from PySide6.QtCore import Signal
 
-class QtABCMeta(type(QObject), ABCMeta):
-    """
-    A metaclass that combines ABCMeta and QObject's metaclass to allow for
-    creating abstract base classes that are compatible with PyQt's object system.
-    """
-    pass
-
-class BaseWidget(ABC, metaclass=QtABCMeta):
-    """
-    An abstract base class for widgets that emit values.
-    
-    This class defines the interface for widgets that expose input fields to
-    the user and retrieve current values for those fields. Values are emitted
-    for by signal for processing elsewhere. These widgets can also be reset to
-    a default state.
-    """
-
-    values_ready_signal = Signal(dict)
-
-    @abstractmethod
-    def handle_values_edited(self):
-        """
-        Handle changes to field values. This method should be called whenever
-        the widget's values are edited.
-        Must be implemented in subclasses.
-        """
-        raise NotImplementedError("Subclass must implement a `handle_values_edited` method.")
-
-    @abstractmethod
-    def get_values(self) -> Dict:
-        """
-        Retrieve current values. Must be implemented in subclasses.
-
-        Returns:
-            Dict: A dictionary of current values.
-        """
-        raise NotImplementedError("Subclass must implement a `get_values` method.")
-
-    @abstractmethod
-    def reset(self):
-        """
-        Reset the widget to its default state. This method should clear all
-        fields or set them to default values.
-        Must be implemented in subclasses.
-        """
-        raise NotImplementedError("Subclass must implement a `reset` method.")
-
-class SingleTextFieldWidget(QtWidgets.QWidget, BaseWidget):
+class SingleTextFieldWidget(QtWidgets.QWidget):
     """Widget for entering a single value via a text field."""
+    values_ready_signal = Signal(np.ndarray)
 
-    def __init__(self, label: str="Constant:"):
+    def __init__(self, text_input_label: str="Constant:"):
         """
         Initialize the SingleTextFieldWidget with a label and text field.
         
         Args:
             label (str): The label displayed next to the text field.
         """
-        QtWidgets.QWidget.__init__(self)
-        BaseWidget.__init__(self)
-        self.text: str = None
+        super().__init__()
         self.text_input = QtWidgets.QLineEdit()
-        self.text_input.textEdited.connect(self.handle_values_edited)
+        self.text_input.textEdited.connect(self.input_received_callback)
 
+        self.init_widget_layout(text_input_label)
+
+    def init_widget_layout(self, text_input_label: str):
         main_layout = QtWidgets.QHBoxLayout()
         self.setLayout(main_layout)    
 
-        text_label = QtWidgets.QLabel(label)
+        text_label = QtWidgets.QLabel(text_input_label)
         main_layout.addWidget(text_label)
         main_layout.addWidget(self.text_input)
 
-    def handle_values_edited(self, text: str):
+    def input_received_callback(self, text: str):
         """
         Handle changes to the text field.
 
         Args:
             text (str): The current text in the input field.
         """
-        self.text = text
-        if self.text:
-            self.values_ready_signal.emit(self.get_values())
+        text = self.text_input.text()
 
-    def get_values(self):
-        """
-        Retrieve the value entered in the text field.
-
-        Returns:
-            Dict[str, str]: A dictionary with the key 'constant' and the entered value.
-        """
-        return {"constant": self.text}
+        if text.isnumeric():
+            self.values_ready_signal.emit(np.array(float(text)))        
 
     def reset(self):
         """
@@ -101,66 +46,63 @@ class SingleTextFieldWidget(QtWidgets.QWidget, BaseWidget):
         self.text_input.clear()
 
 
-class LinearWidget(QtWidgets.QWidget, BaseWidget):
+class LinearWidget(QtWidgets.QWidget):
     """Widget that allows users to specify a range for generating linearly
     spaced values."""
 
-    def __init__(self):
-        QtWidgets.QWidget.__init__(self)
-        BaseWidget.__init__(self)
-        self.start: str = None
-        self.stop: str = None
-        self.points: str = None
+    values_ready_signal = Signal(np.ndarray)
 
+    def __init__(self):
+        super().__init__()
         self.start_input = QtWidgets.QLineEdit()
         self.stop_input = QtWidgets.QLineEdit()
         self.points_input = QtWidgets.QLineEdit()
 
-        # Attribute map allows inputs to be mapped to attributes dyamically;
-        # it's especially useful when handling edits to inputs
-        self.attribute_map = {
-            self.start_input: "start",
-            self.stop_input: "stop",
-            self.points_input: "points",
-        }
+        self.init_widget_layout()
 
-        self.init_main_layout()
-
-    def init_main_layout(self):
+    def init_widget_layout(self):
         main_layout = QtWidgets.QVBoxLayout()
-        self.setLayout(main_layout)
 
-        for input, label in self.attribute_map.items():
+        input_label_map = {
+            self.start_input: "Start:",
+            self.stop_input: "Stop:",
+            self.points_input: "Number of Points:",
+        }
+        for input, label in input_label_map.items():
             # Build sublayout for each attribute
             layout = QtWidgets.QHBoxLayout()
-            label = QtWidgets.QLabel(f"{label.capitalize()}:")
+            label = QtWidgets.QLabel(f"{label}")
             layout.addWidget(label)
             layout.addWidget(input)
             main_layout.addLayout(layout)
 
             # Connect handler method to each attribute input field
-            input.editingFinished.connect(self.handle_values_edited)
+            input.editingFinished.connect(self.input_received_callback)
 
-    def handle_values_edited(self):
+        self.setLayout(main_layout)
+
+    def input_received_callback(self):
         """
         Handle changes to any of the input fields.
         """
-        # Sender is the method caller (i.e, the widget calling the function)
-        sender = self.sender()
-        setattr(self, self.attribute_map[sender], sender.text())
+        start = self.start_input.text()
+        stop = self.stop_input.text()
+        number_of_points = self.points_input.text()
 
-        # Only emit the signal after all values have been edited
-        if all([self.start, self.stop, self.points]):
-            self.values_ready_signal.emit(self.get_values())
+        # Only emit the signal when all inputs contain numerical values 
+        if all([start.isnumeric(),
+                stop.isnumeric(),
+                number_of_points.isnumeric(),
+                ]):
 
-    def get_values(self):
-        """
-        Retrieve spacing values based on user input.
+                start = float(start)
+                stop = float(stop)
+                try:
+                    number_of_points = int(number_of_points)
+                except ValueError as e:
+                    print(f"Point is not int: {e}")
 
-        Returns:
-            Dict[str, str]: A dictionary containing 'start', 'stop', and 'points' values.
-        """
-        return {"start": self.start, "stop": self.stop, "points": self.points}
+                self.values_ready_signal.emit(np.linspace(start, stop, number_of_points))
 
     def reset(self):
         """
@@ -171,8 +113,10 @@ class LinearWidget(QtWidgets.QWidget, BaseWidget):
         self.points_input.clear()
 
 
-class FunctionWidget(QtWidgets.QWidget, BaseWidget):
+class FunctionWidget(QtWidgets.QWidget):
     """Widget for selecting a function from a dropdown menu."""
+
+    values_ready_signal = Signal(np.ndarray)
 
     def __init__(self, options: list=["Option 1", "Option 2", "Option 3"]):
         """
@@ -181,28 +125,22 @@ class FunctionWidget(QtWidgets.QWidget, BaseWidget):
         Args:
             options (List[str]): List of options to display in the dropdown menu.
         """
-        QtWidgets.QWidget.__init__(self)
-        BaseWidget.__init__(self)
+        super().__init__()
         self.function_dropdown = QtWidgets.QComboBox()
-        self.function_dropdown.addItems(options)    
+        self.function_dropdown.addItems(options)
+        self.function_dropdown.currentIndexChanged.connect(self.input_received_callback)
 
+        self.init_widget_layout()
+
+    def init_widget_layout(self):
         main_layout = QtWidgets.QHBoxLayout()
-        self.setLayout(main_layout)
-
         main_layout.addWidget(self.function_dropdown)
 
-    def get_values(self):
-        """
-        Retrieve the selected function name from the dropdown menu.
+        self.setLayout(main_layout)
 
-        TODO: Eventually, this method will need to expose additional widgets
-        that allow users to enter values for the chosen function's arguments.
-
-        Returns:
-            Dict[str, str]: A dictionary containing the selected function name.
-        """
-        self.values_ready_signal.emit({"function": self.function_dropdown.currentText()})
-        return {"function": self.function_dropdown.currentText()}
+    def input_received_callback(self):
+        print("This is just a placeholder for now")
+        self.values_ready_signal.emit(np.ndarray([]))
 
     def reset(self):
         """
