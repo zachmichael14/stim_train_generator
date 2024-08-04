@@ -41,9 +41,9 @@ class IntervalWidget(QtWidgets.QWidget):
 
         self.mode_selector_widget = basic_widgets.ModeSelectorWidget()
         self.mode_selector_widget.signal_mode_changed.connect(self.mode_changed_callback)
+        self.groupbox_layout.addWidget(self.mode_selector_widget)
 
         self.main_layout = QtWidgets.QVBoxLayout()
-        self.main_layout.addWidget(self.mode_selector_widget)
         self.main_layout.addWidget(self.widget_groupbox)
         self.setLayout(self.main_layout)
 
