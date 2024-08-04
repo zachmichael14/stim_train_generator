@@ -1,16 +1,17 @@
+from typing import Dict, Type, Union
+
 import numpy as np
 from PySide6 import QtWidgets
 
 from widgets import basic_widgets
 
-## TODO: Using Enum for modes might be beneficial, 
-
 class IntervalWidget(QtWidgets.QWidget):
     """
     Base widget for selecting and displaying different interval modes.
     """
+    
     # Map modes to their respective widgets
-    MODE_MAP = {
+    MODE_MAP: Dict[str, Type[QtWidgets.QWidget]] = {
         "constant": basic_widgets.SingleTextFieldWidget,
         "linear": basic_widgets.LinearWidget,
         "function": basic_widgets.FunctionWidget,
@@ -25,120 +26,72 @@ class IntervalWidget(QtWidgets.QWidget):
             title (str): Title for the widget.
         """
         super().__init__()
-        # Wraps entire widget in a box labeled with title
+        # Array of user-entered values from subwidget
+        self.values: np.ndarray = None
+
+        # Visually wraps widget in a border-box labeled with title
         self.widget_groupbox = QtWidgets.QGroupBox(f"{title}")
-
-        # As a QButtonGroup, mode_buttons makes buttons mutually exclusive. 
-        self.mode_buttons = QtWidgets.QButtonGroup(self.widget_groupbox)
-        self.mode_buttons.buttonClicked.connect(self.handle_mode_buttons)
-
-        self.button_layout = QtWidgets.QHBoxLayout()
-        self.init_mode_buttons()
-
         self.groupbox_layout = QtWidgets.QVBoxLayout()
-        self.groupbox_layout.addLayout(self.button_layout)
         self.widget_groupbox.setLayout(self.groupbox_layout)
 
-        self.subwidget = None
+        # TODO: Modify the way the sudwiget is display such that add and remove moethods cna also be used by amplitude widget to add/remove 
+        # its repetition widget
+        self.subwidget: Union[QtWidgets.QWidget, None] = None
         self.show_subwidget(basic_widgets.SingleTextFieldWidget)
 
+        self.mode_selector_widget = basic_widgets.ModeSelectorWidget()
+        self.mode_selector_widget.signal_mode_changed.connect(self.mode_changed_callback)
 
         self.main_layout = QtWidgets.QVBoxLayout()
+        self.main_layout.addWidget(self.mode_selector_widget)
         self.main_layout.addWidget(self.widget_groupbox)
         self.setLayout(self.main_layout)
 
-    def init_mode_buttons(self):
-        for mode in self.MODE_MAP:
-            button = QtWidgets.QRadioButton(mode.capitalize())
-            self.mode_buttons.addButton(button)
-            self.button_layout.addWidget(button)
-
-        # Set "Constant" mode as default
-        self.mode_buttons.buttons()[0].setChecked(True)
-
-    def handle_mode_buttons(self):
+    def mode_changed_callback(self, mode: str) -> None:
         """
         Handle the mode change by updating the subwidget accordingly and
         emitting a signal that the mode has changed.
-
-        Args:
-            button (QtWidgets.QRadioButton): The button that was clicked.
         """
-        mode = self.get_current_mode()
+        mode = mode.lower()
         self.show_subwidget(self.MODE_MAP[mode])
 
-    def show_subwidget(self, widget_class: QtWidgets.QWidget):
+    def show_subwidget(self, widget_class: Type[QtWidgets.QWidget]) -> None:
         """
         Replace the current subwidget with given subwidget.
 
         Args:
-            widget_class (QtWidgets.QWidget): The class of the widget to display.
+            widget_class (Type[QtWidgets.QWidget]): The class of the widget to display.
         """  
         if self.subwidget:
             self.remove_subwidget()
 
         subwidget = widget_class()
-        subwidget.values_ready_signal.connect(self.process_values)
+        subwidget.signal_values_ready.connect(self.process_values)
         self.subwidget = subwidget
         self.groupbox_layout.addWidget(self.subwidget)
 
-    def remove_subwidget(self):
+    def remove_subwidget(self) -> None:
+        """
+        Remove and delete the current subwidget.
+        """
         self.groupbox_layout.removeWidget(self.subwidget)
         self.subwidget.deleteLater()
         self.subwidget = None
 
-    def process_values(self):
-        sender = self.sender()
-
-        function_map = {
-            self.MODE_MAP["constant"]: self.get_constant_values,
-            self.MODE_MAP["linear"]: self.get_linear_values,
-            self.MODE_MAP["function"]: self.get_function_values,
-        }
-
-        values = function_map[type(sender)]()
-        return values
-    
-    def get_constant_values(self):
+    def process_values(self, values):
         """
-        Get values for constant mode.
-        """
-        constant_value = float(self.subwidget.get_values()['constant'])
-        return np.array([constant_value])
-
-    def get_linear_values(self):
-        """
-        Get values for linear mode.
-        """
-        values = self.subwidget.get_values()
-        start = float(values['start'])
-        stop = float(values['stop'])
-        points = int(values['points'])
-        return np.linspace(start, stop, points)
-
-    def get_function_values(self):
-        """
-        Get values for function mode.
-        Note: This is a placeholder as functions are not yet written
-        """
-        function_name = self.subwidget.get_values()['function']
-        # For now, just return an empty array
-        return np.array([])
-
-    def get_current_mode(self):
-        """
-        Retrieve the currently selected mode.
+        Process the values based on the current mode.
 
         Returns:
-            str: The current mode, which can be "constant", "linear", or "function".
+            np.ndarray: Processed values.
         """
-        return(self.mode_buttons.checkedButton().text().lower())
+        self.values = values
 
-    def reset(self):
+    def reset(self) -> None:
         """
         Reset the widget to its default state with "Constant" mode selected.
         """
-        self.mode_buttons.buttons()[0].setChecked(True)
+        self.mode_selector_widget.reset()
         self.show_subwidget(basic_widgets.SingleTextFieldWidget)
         self.subwidget.reset()
 
@@ -156,10 +109,17 @@ class AmplitudeWidget(IntervalWidget):
         Initialize the AmplitudeWidget with a title and connect mode change signal.
         """
         super().__init__("Amplitude Settings")
-        self.repetition_widget = basic_widgets.SingleTextFieldWidget("Total Pulses:")
+
+        self.repetitions = 1 # There will always be >=1 amplitude
+        print(self.repetitions)
+
+        self.repetition_widget: Union[basic_widgets.SingleTextFieldWidget, None] = basic_widgets.SingleTextFieldWidget("Total Pulses:")
+        self.repetition_widget.signal_values_ready.connect(self.process_repetions)
+
         self.groupbox_layout.addWidget(self.repetition_widget)
 
-    def handle_mode_buttons(self):
+
+    def handle_mode_buttons(self) -> None:
         """
         Handle the mode change by updating the subwidget and repetition widgets
         accordingly.
@@ -169,11 +129,14 @@ class AmplitudeWidget(IntervalWidget):
         self.show_subwidget(self.MODE_MAP[mode])
         self.show_repetition_widget(mode)
 
-    def show_repetition_widget(self, current_mode):
+    def show_repetition_widget(self, current_mode: str) -> None:
         """
         Show the repetition subwidget based on the current mode.
+
+        Args:
+            current_mode (str): The current mode of the widget.
         """
-        # Remove preivous subwidget first so if mode is function, the method
+        # Remove previous subwidget first so if mode is function, the method
         # can return without a widget
         if self.repetition_widget:
             self.remove_current_subwidget()
@@ -186,10 +149,17 @@ class AmplitudeWidget(IntervalWidget):
 
         label_text = self.get_label_text(current_mode)
         self.repetition_widget = basic_widgets.SingleTextFieldWidget(label_text)
-        # self.repetition_widget.values_ready_signal.connect(self.)
+        self.repetition_widget.signal_values_ready.connect(self.process_repetions)
         self.groupbox_layout.addWidget(self.repetition_widget)
 
-    def remove_current_subwidget(self):
+    def process_repetions(self, repetitions: np.ndarray):
+            #SingleTextFieldWidget emits repetitions as np.ndarray
+            self.repetitions = int(repetitions.item())
+
+            if self.values and self.repetitions:
+                self.values = np.repeat(self.values, self.repetitions)
+    
+    def remove_current_subwidget(self) -> None:
         """
         Remove and delete the current repetition subwidget.
         """
@@ -197,7 +167,7 @@ class AmplitudeWidget(IntervalWidget):
         self.repetition_widget.deleteLater()
         self.repetition_widget = None
 
-    def get_label_text(self, current_mode):
+    def get_label_text(self, current_mode: str) -> str:
         """
         Get the label text for the repetition subwidget based on the current mode.
 
@@ -213,23 +183,9 @@ class AmplitudeWidget(IntervalWidget):
             label_text = "Pulses per Amplitude:"
         return label_text
     
-    def get_values(self):
-        """
-        Retrieve the amplitude values and repetition settings.
-
-        Returns:
-            np.ndarray: An array of amplitude values repeated according to the repetition settings.
-        """
-        amplitudes = self.process_values()
-        repetitions = 1
-
-        if self.repetition_widget:
-            repetitions = self.repetition_widget.get_values()        
-        return np.repeat(amplitudes, repetitions)
-    
-    def reset(self):
+    def reset(self) -> None:
         """
         Reset the widget to its default state, including showing the repetition widget.
         """
         super().reset()
-        self.show_repetition_widget()
+        self.show_repetition_widget(self.get_current_mode())

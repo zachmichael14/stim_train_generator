@@ -4,7 +4,7 @@ from PySide6.QtCore import Signal
 
 class SingleTextFieldWidget(QtWidgets.QWidget):
     """Widget for entering a single value via a text field."""
-    values_ready_signal = Signal(np.ndarray)
+    signal_values_ready = Signal(np.ndarray)
 
     def __init__(self, text_input_label: str="Constant:"):
         """
@@ -37,7 +37,7 @@ class SingleTextFieldWidget(QtWidgets.QWidget):
         text = self.text_input.text()
 
         if text.isnumeric():
-            self.values_ready_signal.emit(np.array(float(text)))        
+            self.signal_values_ready.emit(np.array(float(text)))        
 
     def reset(self):
         """
@@ -50,7 +50,7 @@ class LinearWidget(QtWidgets.QWidget):
     """Widget that allows users to specify a range for generating linearly
     spaced values."""
 
-    values_ready_signal = Signal(np.ndarray)
+    signal_values_ready = Signal(np.ndarray)
 
     def __init__(self):
         super().__init__()
@@ -102,7 +102,7 @@ class LinearWidget(QtWidgets.QWidget):
                 except ValueError as e:
                     print(f"Point is not int: {e}")
 
-                self.values_ready_signal.emit(np.linspace(start, stop, number_of_points))
+                self.signal_values_ready.emit(np.linspace(start, stop, number_of_points))
 
     def reset(self):
         """
@@ -116,7 +116,7 @@ class LinearWidget(QtWidgets.QWidget):
 class FunctionWidget(QtWidgets.QWidget):
     """Widget for selecting a function from a dropdown menu."""
 
-    values_ready_signal = Signal(np.ndarray)
+    signal_values_ready = Signal(np.ndarray)
 
     def __init__(self, options: list=["Option 1", "Option 2", "Option 3"]):
         """
@@ -140,10 +140,49 @@ class FunctionWidget(QtWidgets.QWidget):
 
     def input_received_callback(self):
         print("This is just a placeholder for now")
-        self.values_ready_signal.emit(np.ndarray([]))
+        self.signal_values_ready.emit(np.ndarray([]))
 
     def reset(self):
         """
         Reset the dropdown to the default option (first item).
         """
         self.function_dropdown.setCurrentIndex(0)
+
+
+class ModeSelectorWidget(QtWidgets.QWidget):
+    signal_mode_changed = Signal(str)
+
+    def __init__(self):
+        super().__init__()
+        # As a QButtonGroup, mode_buttons makes buttons mutually exclusive
+        self.mode_buttons = QtWidgets.QButtonGroup()
+
+        self.init_widget_layout()
+
+        # Set "Constant" mode as default
+        self.mode_buttons.buttons()[0].setChecked(True)
+        self.mode_buttons.buttonClicked.connect(self.mode_changed_callback)
+
+    def init_widget_layout(self):
+        button_layout = QtWidgets.QHBoxLayout()
+
+        constant_button = QtWidgets.QRadioButton("Constant")
+        self.mode_buttons.addButton(constant_button)
+        button_layout.addWidget(constant_button)
+
+        linear_button = QtWidgets.QRadioButton("Linear")
+        self.mode_buttons.addButton(linear_button)
+        button_layout.addWidget(linear_button)
+
+        function_button = QtWidgets.QRadioButton("Function")
+        self.mode_buttons.addButton(function_button)
+        button_layout.addWidget(function_button)
+
+        self.setLayout(button_layout)
+
+    def mode_changed_callback(self):
+        current_mode = self.mode_buttons.checkedButton().text()
+        self.signal_mode_changed.emit(current_mode)
+
+    def reset(self):
+        self.mode_buttons.buttons()[0].setChecked(True)
