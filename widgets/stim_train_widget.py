@@ -5,7 +5,7 @@ from PySide6 import QtWidgets
 import manager
 import plotter
 from data_classes import Channel, StimTrainEvent
-from widgets import channel_widget, interval_widgets
+from widgets import channel_widget, parameter_widgets
 
 class StimTrainWidget(QtWidgets.QWidget):
     def __init__(self, manager: manager.StimTrainManager):
@@ -13,10 +13,10 @@ class StimTrainWidget(QtWidgets.QWidget):
         self.events = []
         self.manager = manager
 
-        self.amplitude_widget = interval_widgets.AmplitudeWidget()
-        self.frequency_widget = interval_widgets.IntervalWidget("Frequency Settings")
-        self.pulse_duration_widget = interval_widgets.IntervalWidget("Pulse Duration Settings")
-        self.interpulse_interval_widget = interval_widgets.IntervalWidget("Inter-pulse Interval Settings")
+        self.amplitude_widget = parameter_widgets.AmplitudeParameterWidget("Amplitude Settings")
+        self.frequency_widget = parameter_widgets.StimulationParameterWidget("Frequency Settings")
+        self.pulse_duration_widget = parameter_widgets.StimulationParameterWidget("Pulse Duration Settings")
+        self.interpulse_interval_widget = parameter_widgets.StimulationParameterWidget("Inter-pulse Interval Settings")
         self.channel_add_widget = channel_widget.ChannelAddWidget()
 
         self.plotter = plotter.StimTrainPlotter(self.manager)
@@ -43,12 +43,16 @@ class StimTrainWidget(QtWidgets.QWidget):
         main_layout.addWidget(self.add_button, 4, 0, 1, 2)
 
     def handle_add_to_channels(self):
-        amplitudes = self.amplitude_widget.get_values()
+        amplitudes = self.amplitude_widget.input_values
         train_length = len(amplitudes)
-        channels = sorted(self.channel_add_widget.get_values())
-        pulse_durations = self.get_pulse_durations(train_length)
-        frequencies = self.get_frequencies(train_length)
-        intervals = self.get_inter_pulse_intervals(train_length)
+
+        channels = self.channel_add_widget.get_active_channels()
+
+        pulse_durations = self.pulse_duration_widget.input_values
+        frequencies = self.frequency_widget.input_values
+        intervals = self.interpulse_interval_widget.input_values
+
+        # The current issue is tat non amplitude parameters, if they are constant, are shorter arrays than the ampltude array, so indexin doent work
 
         current_time = 0
         for i, channel_id in enumerate(channels):
