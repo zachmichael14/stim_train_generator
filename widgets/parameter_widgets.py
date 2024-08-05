@@ -76,7 +76,6 @@ class StimulationParameterWidget(QtWidgets.QWidget):
         self.subwidget_container_layout.addWidget(self.input_subwidget)
 
     def input_ready_callback(self, input_values: np.ndarray) -> None:
-        print(input_values)
         self.input_values = input_values
 
     def reset(self) -> None:
