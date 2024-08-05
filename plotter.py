@@ -6,7 +6,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 from matplotlib.backend_bases import MouseButton
 
-from widgets.dialog_widgets import IntervalEditDialog, PulseEditDialog
+from plot_edit_dialog import IntervalEditDialog, PulseEditDialog
 
 
 class StimTrainPlotter(QMainWindow):
