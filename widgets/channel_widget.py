@@ -11,7 +11,7 @@ class ChannelAddWidget(QtWidgets.QWidget):
         channels_selected (QtCore.Signal): Signal that emits list of selected
         channels whenever channels are toggled.
     """
-    values_ready_signal = Signal()
+    signal_values_ready = Signal()
 
     def __init__(self):
         """
@@ -37,7 +37,7 @@ class ChannelAddWidget(QtWidgets.QWidget):
             checkbox.stateChanged.connect(self.input_received_callback)
 
             groupbox_layout.addWidget(checkbox)
-            self.checkboxes[checkbox] = checkbox.isChecked()
+            self.checkboxes[i] = checkbox.isChecked()
 
         main_layout.addWidget(groupbox)
 
@@ -52,15 +52,6 @@ class ChannelAddWidget(QtWidgets.QWidget):
         checkbox = self.sender()
         self.checkboxes[checkbox] = checkbox.isChecked()
 
-    def get_values(self):
-        """
-        Retrieve the list of currently selected channels.
-
-        Returns:
-            list: A list of selected channel IDs.
-        """
-        return self.checkboxes
-
     def reset(self):
         """
         Reset all checkboxes to their default (unchecked) state and clear the selected channels list.
@@ -68,3 +59,6 @@ class ChannelAddWidget(QtWidgets.QWidget):
         for checkbox in self.checkboxes.keys():
             checkbox.setChecked(False)
             self.checkboxes[checkbox] = False
+
+    def get_active_channels(self):
+        return {key: value for key, value in self.checkboxes.items() if value == True}
