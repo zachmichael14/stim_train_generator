@@ -15,7 +15,8 @@ class SingleTextFieldWidget(QtWidgets.QWidget):
         """
         super().__init__()
         self.text_input = QtWidgets.QLineEdit()
-        self.text_input.textEdited.connect(self.input_received_callback)
+        self.text_label = QtWidgets.QLabel(text_input_label)
+        self.text_input.editingFinished.connect(self.input_received_callback)
 
         self.init_widget_layout(text_input_label)
 
@@ -23,11 +24,10 @@ class SingleTextFieldWidget(QtWidgets.QWidget):
         main_layout = QtWidgets.QHBoxLayout()
         self.setLayout(main_layout)    
 
-        text_label = QtWidgets.QLabel(text_input_label)
-        main_layout.addWidget(text_label)
+        main_layout.addWidget(self.text_label)
         main_layout.addWidget(self.text_input)
 
-    def input_received_callback(self, text: str):
+    def input_received_callback(self):
         """
         Handle changes to the text field.
 
@@ -44,6 +44,9 @@ class SingleTextFieldWidget(QtWidgets.QWidget):
         Clear the text field to reset the widget.
         """
         self.text_input.clear()
+
+    def set_label_text(self, input_label: str):
+        self.text_label.setText(input_label)
 
 
 class LinearWidget(QtWidgets.QWidget):
@@ -163,7 +166,7 @@ class ModeSelectorWidget(QtWidgets.QWidget):
         self.mode_buttons.buttons()[0].setChecked(True)
         self.mode_buttons.buttonClicked.connect(self.mode_changed_callback)
 
-    def init_widget_layout(self):
+    def init_widget_layout(self) -> None:
         button_layout = QtWidgets.QHBoxLayout()
 
         constant_button = QtWidgets.QRadioButton("Constant")
@@ -180,9 +183,12 @@ class ModeSelectorWidget(QtWidgets.QWidget):
 
         self.setLayout(button_layout)
 
-    def mode_changed_callback(self):
+    def mode_changed_callback(self) -> None:
         current_mode = self.mode_buttons.checkedButton().text()
-        self.signal_mode_changed.emit(current_mode)
+        self.signal_mode_changed.emit(current_mode.lower())
 
-    def reset(self):
+    def reset(self) -> None:
         self.mode_buttons.buttons()[0].setChecked(True)
+
+    def get_current_mode(self) -> str:
+        return self.mode_buttons.checkedButton().text().lower()
