@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Tuple, Type
 
 from PySide6 import QtWidgets
 from PySide6.QtCore import Signal
@@ -18,8 +18,10 @@ class ChannelAddWidget(QtWidgets.QWidget):
         Initialize the ChannelAddWidget with checkboxes for channel selection.
         """
         super().__init__()
-        # Values will be checked state
-        self.checkboxes: Dict[QtWidgets.QCheckBox: bool] = {}
+        # Checkboxes dictionary format:
+        # {Checkbox widget: {"id": channel id, "state": checked state}}
+        self.checkboxes: Dict[Type[QtWidgets.QCheckBox]: Dict[str: int,
+                                                              str: bool]] = {}
         self.init_main_layout()
 
     def init_main_layout(self):
@@ -37,7 +39,7 @@ class ChannelAddWidget(QtWidgets.QWidget):
             checkbox.stateChanged.connect(self.input_received_callback)
 
             groupbox_layout.addWidget(checkbox)
-            self.checkboxes[i] = checkbox.isChecked()
+            self.checkboxes[checkbox] = {"id": i, "state": checkbox.isChecked()}
 
         main_layout.addWidget(groupbox)
 
@@ -50,7 +52,7 @@ class ChannelAddWidget(QtWidgets.QWidget):
             state (int): The state of the checkbox (checked or unchecked).
         """
         checkbox = self.sender()
-        self.checkboxes[checkbox] = checkbox.isChecked()
+        self.checkboxes[checkbox]["state"] = checkbox.isChecked()
 
     def reset(self):
         """
@@ -58,7 +60,9 @@ class ChannelAddWidget(QtWidgets.QWidget):
         """
         for checkbox in self.checkboxes.keys():
             checkbox.setChecked(False)
-            self.checkboxes[checkbox] = False
+            self.checkboxes[checkbox]["state"] = False
 
     def get_active_channels(self):
-        return {key: value for key, value in self.checkboxes.items() if value == True}
+        # Other widgets should only be concerned with the ID of active
+        # channels, so there shouldn't be a need to send the checkboxes
+        return [value["id"] for value in self.checkboxes.values() if value["state"] == True]

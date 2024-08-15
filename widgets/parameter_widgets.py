@@ -62,6 +62,9 @@ class StimulationParameterWidget(QtWidgets.QWidget):
         """
         self.show_subwidget(self.MODE_MAP[mode])
 
+    def get_current_mode(self):
+        return self.mode_selector_subwidget.get_current_mode()
+
     def show_subwidget(self, widget_class: Type[QtWidgets.QWidget]) -> None:
         """
         Replace the current subwidget with given subwidget.
@@ -76,7 +79,6 @@ class StimulationParameterWidget(QtWidgets.QWidget):
         self.subwidget_container_layout.addWidget(self.input_subwidget)
 
     def input_ready_callback(self, input_values: np.ndarray) -> None:
-        print(input_values)
         self.input_values = input_values
 
     def reset(self) -> None:
@@ -157,6 +159,9 @@ class AmplitudeParameterWidget(QtWidgets.QWidget):
         self.show_subwidget(self.MODE_MAP[mode])
         self.show_repetition_subwidget(mode)
 
+    def get_current_mode(self):
+        return self.mode_selector_subwidget.get_current_mode()
+
     def show_subwidget(self, widget_class: Type[QtWidgets.QWidget]) -> None:
         """
         Replace the current subwidget with given subwidget.
@@ -212,4 +217,4 @@ class AmplitudeParameterWidget(QtWidgets.QWidget):
         """
         self.mode_selector_subwidget.reset()
         self.show_subwidget(basic_widgets.SingleTextFieldWidget)
-        self.input_subwidget.reset()
+        self.show_repetition_subwidget(self.mode_selector_subwidget.get_current_mode())
