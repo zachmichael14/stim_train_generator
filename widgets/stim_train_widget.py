@@ -74,6 +74,7 @@ class StimTrainWidget(QtWidgets.QWidget):
                                      amplitude,
                                      frequency,
                                      start_time,
+                                     duration,
                                      end_time,
                                      ])
             

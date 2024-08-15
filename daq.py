@@ -6,6 +6,11 @@ from typing import List
 
 import nidaqmx
 
+# When pseudo-continuous, how long do we want to stim on each channel before swtiching to other active channels? A single period, 1ms? Does frequency matter if it's less than 1 period? 
+
+# Will we ever need to do HF and conventional simulataneously (ex., one channel is HF while one is conventional)?
+
+
 class DAQ:
     """
     A class supporting a National Instruments Data Acquisition (NI-DAQ/DAQ) device. This class focuses on allowing the DAQ to control a DS8R stimulator.
@@ -29,7 +34,7 @@ class DAQ:
     def __init__(self,
                  pico_port: int = 1,
                  switcher_port: int = 0,
-                 trigger_port: int = 1,
+                 trigger_port: int = 2,
                  amplitude_port: int = 0,
                  logging_file: str = None):
         """
@@ -62,18 +67,18 @@ class DAQ:
         self.amplitude_channel: nidaqmx.Task = self._create_task()
         self.amplitude_channel.ao_channels.add_ao_voltage_chan(f"{self.device_name}/ao{amplitude_port}")
 
-        # Initialize trigger channel (analog output)
+        # # Initialize trigger channel (analog output)
         self.trigger_channel: nidaqmx.Task = self._create_task()
         self._add_digital_out_channels(self.trigger_channel, trigger_port, 1)
       
         self.switcher_channels: nidaqmx.Task = self._create_task()
         self._add_digital_out_channels(self.switcher_channels, switcher_port, 8)
 
-        # Initialize Pico channels (digital output)
+        # # Initialize Pico channels (digital output)
         self.pico_channels: nidaqmx.Task = self._create_task()
         self._add_digital_out_channels(self.pico_channels, pico_port, 4)
 
-        # Zero any previously stored values on the DAQ/Pico
+        # # Zero any previously stored values on the DAQ/Pico
         self.zero_all()
 
     def __del__(self) -> None:
@@ -93,7 +98,10 @@ class DAQ:
         Tasks list is used by __del__ for closing tasks before 
         garbage collection.
 
-        :return: Newly created nidaqmx.Task object
+        A task is essentially a way to interact with a port on the device.
+
+        Return: 
+            nidaqmx.Task: Newly created nidaqmx.Task object
         """
         task = nidaqmx.Task()
         self.tasks.append(task)
@@ -117,11 +125,13 @@ class DAQ:
 
     def set_amplitude(self, amplitude: float) -> None:
         """
+        TODO: Implement conversion factor if DS8R settings change.
         Set the amplitude of the output signal.
 
         This method writes a value to the DAQ analog output pin that
         corresponds to the DS8R's "Control" input, thus setting
-        the amplitude of the DS8R.
+        the amplitude of the DS8R. This method assumes the DS8R is
+        conversion factor is set to 10 V = 1000 mA
         
         Calling this method alone does not trigger stimulation; it must be
         called with a nonzero value before triggering stimulation.
@@ -130,9 +140,12 @@ class DAQ:
             amplitude: Desired amplitude in mA
         """
     
-        # TODO: Implement conversion factor if DS8R settings change
-        # Convert mA to V (assuming 100mA = 1V)
-        self.amplitude_channel.write(amplitude / 100) 
+        if amplitude == 0: 
+            # Write true zero
+            self.amplitude_channel.write(0) 
+        else: 
+            # Adding 1 helps counter DS8R jitter/offset
+            self.amplitude_channel.write((amplitude + 1.4) / 100)
  
     def set_channel(self, channel: int) -> None:
         """
@@ -193,21 +206,9 @@ class DAQ:
 
     def set_pulse_with_pico(self, pulses: int) -> None:
         """
-        Pico sampling rate appears to be ~ 4 samples/sec
-        This method contains a 2ms sleep.
-        This is unrelated to frequency and instead serves as a buffer to the
-        sampling rate of the Pico. In other words, it allows frequency to be
-        controlled intuitively by other parts of the code. 
-
-        For example, the snippet below would deliver stimulation at 60Hz:
-            # pulses = self.PICO_LOOKUP[<int value from 0-11>]
-            # frequency = 60
-            # period = 1/frequency
-            #
-            # while True:
-            #   daq.set_pulse_with_pico(pulses)
-            #   time.sleep(period)
-        
+        This method contains a 2ms sleep that seems unrelated to frequency.
+        It instead seems to serve as a buffer to the sampling rate of the Pico.
+        Its effect is that the Pico only sends the trigger signal once.        
         """
         self.pico_channels.write(self.PICO_LOOKUP[pulses])
         time.sleep(0.1)
@@ -232,14 +233,14 @@ class DAQ:
         """
         system = nidaqmx.system.System.local()
         
-        if not system.devices:
-            print("Cannot find any DAQ device(s). Check USB connections.")
-            print("Waiting for connection...")
+        # if not system.devices:
+        #     print("Cannot find any DAQ device(s). Check USB connections.")
+        #     print("Waiting for connection...")
 
-            while not system.devices:
-                pass
-            print("Device found! O frabjous day!")
-            time.sleep(1) # Add delay to allow time to read new connection
+        #     while not system.devices:
+        #         pass
+        #     print("Device found! O frabjous day!")
+        #     time.sleep(1) # Add delay to allow time to read new connection
         return system.devices
 
     @staticmethod
@@ -252,15 +253,15 @@ class DAQ:
         for device in system.devices:
             print(f"Device: {device.name}")
             print("All Available Channels:")
-            print("\tAI Channels: ", [chan.name for chan in device.ai_physical_chans])
-            print("\tAO Channels: ", [chan.name for chan in device.ao_physical_chans])
-            print("\tDI Channels: ", [chan.name for chan in device.di_lines])
-            print("\tDO Channels: ", [chan.name for chan in device.do_lines])
-            print("\tCI Channels: ", [chan.name for chan in device.ci_physical_chans])
-            print("\tCO Channels: ", [chan.name for chan in device.co_physical_chans])
-
+            print(f"\tAI Channels: {[chan.name for chan in device.ai_physical_chans]}")
+            print(f"\tAO Channels: {[chan.name for chan in device.ao_physical_chans]}")
+            print(f"\tDI Channels: {[chan.name for chan in device.di_lines]}")
+            print(f"\tDO Channels: {[chan.name for chan in device.do_lines]}")
+            print(f"\tCI Channels: {[chan.name for chan in device.ci_physical_chans]}")
+            print(f"\tCO Channels: {[chan.name for chan in device.co_physical_chans]}")
 
 #### BELOW IS ONLY REQUIRED FOR TESTING ####
+#### IT WILL BE DELETED OR MOVED SOON   ####
     def run_time_test(self, csv_file, printing=False):
         import pandas as pd
 
@@ -284,24 +285,26 @@ class DAQ:
 
     def generate_test_values(self, filename, qty=100):
         import random
+        possible_channels = list(range(1, 9))
+        possible_frequencies = [1, 5, 30, 60, 100, 500]
+        possible_amplitudes = [1, 2, 3, 4, 5.5]
+        possible_durations = [5, 10, 100, 250, 1500, 5000]
 
-        possible_frequencies = [0, 1, 5, 30, 60, 100]
-        possible_amplitudes = [0, 1, 2, 3, 4, 5.5]
-        possible_durations = [0, 10, 100, 250, 1500, 5000]
-
+        channies = [random.choice(possible_channels) for _ in range(qty)]
         amplies = [random.choice(possible_amplitudes) for _ in range(qty)]
         freqies = [random.choice(possible_frequencies) for _ in range(qty)]
         bursties = [random.choice(possible_durations) for _ in range(qty)]
-        breakies = [random.choice(possible_durations) for _ in range(qty)]
+        # breakies = [random.choice(possible_durations) for _ in range(qty)]
         
         def write_test_values(filename):
             with open(filename, "w", newline="") as file:
                 writer = csv.writer(file)
                 for i in range(qty):
-                    writer.writerow([amplies[i],
+                    writer.writerow([channies[i],
+                                    amplies[i],
                                      freqies[i],
                                      bursties[i],
-                                     breakies[i],
+                                    #  breakies[i],
                                      ])
         write_test_values(filename)
 
