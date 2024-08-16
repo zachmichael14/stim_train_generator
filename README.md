@@ -123,7 +123,7 @@ The current goal is to finish the tasks for the individual components outlined b
         - Adding/removing stored parameters
         - Live updates to parameters
 
-## Next steps,
+## Next steps
 After completion of the above, integration into the analog streaming code base begins. There aren't currently any expected large obstacles to integration since this part of the application is self contained.
 
 After this is integrated into the analog streaming code base, Rod and I will need to get together to ensure the HF functionality works.
