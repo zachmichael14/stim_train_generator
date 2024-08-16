@@ -2,7 +2,9 @@
 
 ## Table of Contents
 - [Overview](#overview)
-- [Hardware Requirements](#hardware-requirements)
+- [Requirements](#requirements)
+  - [Hardware](#hardware)
+  - [Software](#software)
 - [Project Organization](#project-organization)
   - [General Data Flow](#general-data-flow)
 - [Challenges](#challenges)
@@ -18,11 +20,19 @@
 ## Overview
 The goal of this project is to allow users to create, visualize, and edit stimulation paradigms in an intuitive manner. The interface allows users to create and visualize stim trains on up to 8 channels using various functions to generate stimulation parameters (amplitude, frequency, duration, etc.). This application includes the ability to use custom functions for parameter generation, write generated stim train to a CSV file, and execute stim trains read from CSVs.
 
-## Hardware Requirements:
+## Requirements:
+### Hardware
 - Digitimer DS8R stimulator
 - Digitimer D188 8-channel switcher
 - NI-DAQ USB-6001 (DAQ)
 - Raspberry Pi Pico
+
+### Software
+- Python
+- PySide6
+- nidaqmx
+- pandas
+- matplotlib
 
 ## Project Organization
 The code in this application is broadly categorized into five main parts:
