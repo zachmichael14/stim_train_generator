@@ -35,12 +35,12 @@ The goal of this project is to allow users to create, visualize, and edit stimul
 - matplotlib
 
 ## Project Organization
-The code in this application is broadly categorized into five main parts<br>:
-    1. GUI
-    2. Train Data Manager
-    3. Stim Train Plotter
-    4. Stimulation Executor
-    5. Hardware Interfaces
+The code in this application is broadly categorized into five main parts:  
+    1. GUI  
+    2. Train Data Manager  
+    3. Stim Train Plotter  
+    4. Stimulation Executor  
+    5. Hardware Interfaces  
 
 ### General Data Flow
 The user enters stim train parameters into the GUI which sends the info to the data manager. The manager acts as a link between the GUI, the plotter, and the executor. The plotter allows users to visualize and modify this data (ex., adding/deleting pulses), and informs the manager when these changes occur. When editing is finished, the executor pulls in the manager's updated data and utilizes the hardware interfaces to execute the user-created stim train.
