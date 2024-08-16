@@ -9,6 +9,7 @@ from widgets import channel_widget, parameter_widgets
 class StimTrainWidget(QtWidgets.QWidget):
     # Emit name of stim train csv file after it's been generated
     signal_values_ready = Signal(str)
+    signal_execute_stim_train = Signal()
     
     def __init__(self):
         super().__init__()
@@ -40,6 +41,14 @@ class StimTrainWidget(QtWidgets.QWidget):
         self.add_button.pressed.connect(self.handle_add_to_channels)
         main_layout.addWidget(self.add_button, 4, 0, 1, 2)
 
+        self.execute_button = self.add_button = QtWidgets.QPushButton("Execute Train")
+        self.execute_button.pressed.connect(self.execute_stim_train)
+        main_layout.addWidget(self.add_button, 5, 0, 1, 2)
+
+    def execute_stim_train(self):
+        print("Executing train")
+        self.signal_execute_stim_train.emit()
+
     def handle_add_to_channels(self):
         amplitudes = self.amplitude_widget.input_values
         train_length = len(amplitudes)
@@ -58,43 +67,26 @@ class StimTrainWidget(QtWidgets.QWidget):
         filename = "test.csv"
         with open(filename, mode="w", newline="") as file:
             writer = csv.writer(file)
-            writer.writerow(["Channel ID", "Amplitude", "Frequency", "Start Time", "End Time"])
+            writer.writerow(["Channel ID", "Amplitude", "Frequency", "Duration"])
 
-            current_time = 0
             for i, channel_id in enumerate(channels):
                 for j in range(train_length):
                     amplitude = amplitudes[j]
                     frequency = frequencies[j]
                     duration = pulse_durations[j]
 
-                    start_time = current_time
-                    end_time = start_time + duration
-
                     writer.writerow([channel_id,
                                      amplitude,
                                      frequency,
-                                     start_time,
                                      duration,
-                                     end_time,
                                      ])
-            
-                    # Update current_time for the interval event
-                    current_time = end_time
-                
-                    # Calculate start and end times for the interval event
-                    interval_start_time = current_time
-                    interval_end_time = interval_start_time + intervals[j]
 
-
+                    # Each pulse is followed by an interval
                     writer.writerow([channel_id,
                                      0, # Intervals don't have amplitudes
                                      0, # Intervals don't have frequency
-                                     interval_start_time,
-                                     interval_end_time,
+                                     intervals[j]
                                      ])
-                                
-                    # Update current_time for the next event
-                    current_time = interval_end_time
 
         self.signal_values_ready.emit(filename)
         self.reset_to_default()
