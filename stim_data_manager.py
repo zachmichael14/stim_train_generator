@@ -40,9 +40,9 @@ class StimDataManager:
         """
         with open(file_path, 'r') as f:
             reader = csv.reader(f)
+            header = next(reader, None)  # Read the first row to skip as header
             current_time = 0
             for row in reader:
-                print(row)
                 channel = int(row[0])
                 amplitude, frequency, duration = map(float, row[1:])
                
