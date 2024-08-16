@@ -84,7 +84,7 @@ Additional data synchronicity challenges are posed by the communication between 
 # Progress
 Overall, the project is ~70% finished, not including integration into the analog streaming codebase.
 
-The core functionality for conventioal stimulation is functional, as it's possible to use the front end to generate a CSV of stimulation parameters, load that CSV into the executor, and execute the generated stim train using the DAQ. Though this requires manual linkage of the components, it's can attain millisecond accuracy in timing tests with durations as low as 5 ms and frequencies as high as 500 Hz.
+The core functionality for conventional stimulation is functional, as it's possible to use the front end to generate a CSV of stimulation parameters, load that CSV into the executor, and execute the generated stim train using the DAQ. Though this requires manual linkage of the components, it can attain millisecond accuracy in timing tests with durations as low as 5 ms and frequencies as high as 500 Hz.
 
 ## Current Work
 The current goal is to finish the tasks for the individual components outlined below:
