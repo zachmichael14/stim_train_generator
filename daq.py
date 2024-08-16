@@ -3,6 +3,7 @@ from queue import Queue
 from threading import Thread
 import time
 from typing import List
+import threading
 
 import nidaqmx
 
@@ -145,7 +146,7 @@ class DAQ:
             self.amplitude_channel.write(0) 
         else: 
             # Adding 1 helps counter DS8R jitter/offset
-            self.amplitude_channel.write((amplitude + 1.4) / 100)
+            self.amplitude_channel.write((amplitude + 1) / 100)
  
     def set_channel(self, channel: int) -> None:
         """
@@ -165,6 +166,19 @@ class DAQ:
         """
         # Pins are reversed, hence the backwards iteration
         self.switcher_channels.write([channel == i for i in range(8, 0, -1)])
+
+    def trigger(self) -> None:
+        """Basic trigger method. This method doesn't control amplitude; for
+        stimulation to be delivered, a nonzero amplitude must be set before
+        calling this method.
+
+        When the trigger is set up on a digital out channel, max frequency is
+        ~500 Hz before the software timer introduces too much jitter to be
+        reliable.
+    
+        """
+        self.trigger_channel.write(True)
+        self.trigger_channel.write(False)
 
     def trigger_burst(self, frequency: float, burst_duration: float):
         """
@@ -206,7 +220,7 @@ class DAQ:
 
     def set_pulse_with_pico(self, pulses: int) -> None:
         """
-        This method contains a 2ms sleep that seems unrelated to frequency.
+        This method contains a 100ms sleep that seems unrelated to frequency.
         It instead seems to serve as a buffer to the sampling rate of the Pico.
         Its effect is that the Pico only sends the trigger signal once.        
         """
@@ -286,8 +300,8 @@ class DAQ:
     def generate_test_values(self, filename, qty=100):
         import random
         possible_channels = list(range(1, 9))
-        possible_frequencies = [1, 5, 30, 60, 100, 500]
-        possible_amplitudes = [1, 2, 3, 4, 5.5]
+        possible_frequencies = [0, 1, 5, 30, 60, 100, 500]
+        possible_amplitudes = [0, 1, 2, 3, 4, 5.5]
         possible_durations = [5, 10, 100, 250, 1500, 5000]
 
         channies = [random.choice(possible_channels) for _ in range(qty)]
