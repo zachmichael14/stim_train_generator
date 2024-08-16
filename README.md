@@ -35,7 +35,7 @@ The goal of this project is to allow users to create, visualize, and edit stimul
 - matplotlib
 
 ## Project Organization
-The code in this application is broadly categorized into five main parts:
+The code in this application is broadly categorized into five main parts<br>:
     1. GUI
     2. Train Data Manager
     3. Stim Train Plotter
