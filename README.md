@@ -1,7 +1,5 @@
 # Seáñez Lab Stim Train Visualizer and Executor
 
-# Seáñez Lab Stim Train Visualizer and Executor
-
 ## Table of Contents
 - [Overview](#overview)
 - [Hardware Requirements](#hardware-requirements)
