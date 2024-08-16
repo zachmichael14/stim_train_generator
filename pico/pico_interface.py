@@ -5,6 +5,7 @@ from typing import Type
 
 class PicoInterface:
     """
+    TODO: Implement method to find port
     TODO: Don't exclude end byte from checksum
 
     Packet structure:
