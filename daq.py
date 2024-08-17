@@ -176,6 +176,15 @@ class DAQ:
         self.trigger_channel.write(True)
         self.trigger_channel.write(False)
 
+    def start_ramp_up(self,
+                      goal_amplitude: float,
+                      frequency: float,
+                      ):
+        """
+        Gradually increase the amplitude of the DS8R until goal_amplitude is reached.
+        """
+        pass
+        
     def trigger_burst(self, frequency: float, burst_duration: float) -> None:
         """
         TODO: This method will likely be deprecated, but it should be tested for frequency speed before hand.
