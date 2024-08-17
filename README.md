@@ -70,16 +70,15 @@ Many of these challenges involve handling valid, but illogical, user-entered val
 Additional data synchronicity challenges are posed by the communication between the manager, plotter, and executor.
 
 # Progress
-Overall, the project is ~70% finished, not including integration into the analog streaming codebase.
+Overall, the project is ~75% finished, not including integration into the analog streaming codebase.
 
-The core functionality for conventioal stimulation is functional, however. Currently, it's possible to use the front end to generate a CSV of stimulation parameters, load that CSV into the executor, and execute the generated stim train using the DAQ. Though this requires manual linkage of the components, it's can attain millisecond accuracy in timing tests with durations as low as 5 ms and frequencies as high as 500 Hz.
+The core functionality for conventional stimulation is functional, however. Currently, it's possible to use the front end to generate a CSV of stimulation parameters, load that CSV into the executor, and execute the generated stim train using the DAQ. Though this requires manual linkage of the components, it can attain millisecond accuracy in timing tests with durations as low as 5 ms and frequencies as high as 500 Hz.
 
 ## Current Work
 The current goal is to finish the tasks for the individual components outlined below, then integrate the application into the analog streaming codebase. There aren't currently any glaring obstacles to integration, but specific features with regard to conditional stimulation based on EMG/IMU biofeedback will need to be discussed.
 
-    1. GUI: ~66% finished.
+    1. GUI: ~80% finished.
         - All current infrastructure/signaling is finished, pending:
-            - Define and conditionally display widgets for custom functions. This is the bulk of the remaining GUI work.
             - Give users the option to specify:
                 - Loop stim train or quit when finished (in the case of RC, F-wave)
                 - Rest amplitude (instead of returning to 0, return to *n* mA for participant tolerability)
@@ -123,7 +122,5 @@ After this is integrated into the analog streaming code base, Rod and I will nee
 - Is the DS8R's conversion factor expected to change (10V=1000mA)?
 
 - How fast would parameters be expected to change? For example, when doing HF, it's not the amplitude or channel that changes rapidly necessarily (and even then, the frequency doesn't change rapidly, it just needs to send the trigger signal rapidly)?
+
 - When two channels overlap and pulses need to be interleaved, the D188 needs to alternate back and forth rapidly, so how long should it stim on each channel before swithcing to the next? 1 ms, 1 period? If it's just a single pulse and then switch, it seems like frequency would be more or less a function of the number of active channels.
-
-
-- Some of the general speed is hindered by more front end work. PRovindg more freedom to the user requires more validation and discipline to ensure data integrity and a smooth user experience. There is always the trade off between hard coding values and creating flexible applications in that hard coding values are faster and easier at the time by limit modularity and reuse. The deccsion i make are more long term focused, both in the sense of providin applications that allow for future flexibility but are also easier to maintain for other people.
