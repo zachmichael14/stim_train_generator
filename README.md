@@ -82,7 +82,7 @@ Many of these challenges involve handling valid, but illogical, user-entered val
 Additional data synchronicity challenges are posed by the communication between the manager, plotter, and executor.
 
 # Progress
-Overall, the project is ~70% finished, not including integration into the analog streaming codebase.
+Overall, the project is ~75% finished, not including integration into the analog streaming codebase.
 
 The core functionality for conventional stimulation is functional, as it's possible to use the front end to generate a CSV of stimulation parameters, load that CSV into the executor, and execute the generated stim train using the DAQ. Though this requires manual linkage of the components, it can attain millisecond accuracy in timing tests with durations as low as 5 ms and frequencies as high as 500 Hz.
 
@@ -134,5 +134,5 @@ After this is integrated into the analog streaming code base, Rod and I will nee
 - Is the DS8R's conversion factor expected to change (10V=1000mA)?
 
 - How fast would parameters be expected to change? For example, when doing HF, it's not the amplitude or channel that changes rapidly necessarily (and even then, the frequency doesn't change rapidly, it just needs to send the trigger signal rapidly)?
-  
+
 - When two channels overlap and pulses need to be interleaved, the D188 needs to alternate back and forth rapidly, so how long should it stim on each channel before swithcing to the next? 1 ms, 1 period? If it's just a single pulse and then switch, it seems like frequency would be more or less a function of the number of active channels.

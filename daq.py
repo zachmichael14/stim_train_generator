@@ -3,18 +3,14 @@ from queue import Queue
 from threading import Thread
 import time
 from typing import List
-import threading
 
 import nidaqmx
 
-# When pseudo-continuous, how long do we want to stim on each channel before swtiching to other active channels? A single period, 1ms? Does frequency matter if it's less than 1 period? 
-
-# Will we ever need to do HF and conventional simulataneously (ex., one channel is HF while one is conventional)?
-
-
 class DAQ:
     """
-    A class supporting a National Instruments Data Acquisition (NI-DAQ/DAQ) device. This class focuses on allowing the DAQ to control a DS8R stimulator.
+    A class supporting a National Instruments Data Acquisition (NI-DAQ/DAQ) device.
+    
+    This class focuses on allowing the DAQ to control a DS8R stimulator.
     """
     # Cached for faster lookup
     PICO_LOOKUP = {
@@ -37,9 +33,13 @@ class DAQ:
                  switcher_port: int = 0,
                  trigger_port: int = 2,
                  amplitude_port: int = 0,
-                 logging_file: str = None):
+                 logging_file: str = None,
+                 ) -> None:
         """
-        Initialize the DAQ object with specified ports.
+        Initialize the DAQ object with specified ports, where a port corresponds to set of physical pin inputs/outputs on the DAQ rather
+        than to a PC's TCP/IP port.
+
+        Ports can have one or more channels, where a channel represents the physical location of a single pin within a port.
 
         Args:
             pico_port (int): Pico connection port, defaults to 1
@@ -47,7 +47,6 @@ class DAQ:
             trigger_port (int): Trigger channel port, defaults to 1
             amplitude_port (int): Amplitude control port, defaults to 0
         """
-
         ### TESTING LOGGER ###
         self.logging = False
         if logging_file:
@@ -63,23 +62,23 @@ class DAQ:
 
         self.tasks: List[nidaqmx.Task] = []
 
-        # Amplitude control channel (analog output)
-        # Use for setting DS8R's amplitude
+        # Used for setting DS8R's amplitude (DAQ's analog output)
         self.amplitude_channel: nidaqmx.Task = self._create_task()
         self.amplitude_channel.ao_channels.add_ao_voltage_chan(f"{self.device_name}/ao{amplitude_port}")
 
-        # # Initialize trigger channel (analog output)
+        # For sending trigger singal to DS8R (DAQ's digital output)
         self.trigger_channel: nidaqmx.Task = self._create_task()
         self._add_digital_out_channels(self.trigger_channel, trigger_port, 1)
       
+        # For specifying D188 channel (DAQ's digital output)
         self.switcher_channels: nidaqmx.Task = self._create_task()
         self._add_digital_out_channels(self.switcher_channels, switcher_port, 8)
 
-        # # Initialize Pico channels (digital output)
+        # For high frequency triggering via the Pico (DAQ's digital output)
         self.pico_channels: nidaqmx.Task = self._create_task()
         self._add_digital_out_channels(self.pico_channels, pico_port, 4)
 
-        # # Zero any previously stored values on the DAQ/Pico
+        # Zero any previously stored values on the DAQ/Pico
         self.zero_all()
 
     def __del__(self) -> None:
@@ -96,10 +95,9 @@ class DAQ:
     def _create_task(self) -> nidaqmx.Task:
         """
         Create a new NI-DAQ task and add it to the tasks list.
-        Tasks list is used by __del__ for closing tasks before 
-        garbage collection.
-
-        A task is essentially a way to interact with a port on the device.
+        
+        A task is essentially a way to interact with a port on the DAQ.
+        The tasks list is used by __del__ for closing tasks before garbage collection.
 
         Return: 
             nidaqmx.Task: Newly created nidaqmx.Task object
@@ -115,11 +113,13 @@ class DAQ:
                                  ) -> None:
         """
         Add digital output channels to the specified task.
+        A channel is individual pin within a port.
 
         Args:
             task (nidaqmx.Task): The nidaqmx.Task to add channels to
             port (int): The port number to use
             channel_quantity (int): The number of channels to add
+            
         """
         for i in range(channel_quantity):
             task.do_channels.add_do_chan(f"{self.device_name}/port{port}/line{i}")        
@@ -127,16 +127,12 @@ class DAQ:
     def set_amplitude(self, amplitude: float) -> None:
         """
         TODO: Implement conversion factor if DS8R settings change.
-        Set the amplitude of the output signal.
-
-        This method writes a value to the DAQ analog output pin that
-        corresponds to the DS8R's "Control" input, thus setting
-        the amplitude of the DS8R. This method assumes the DS8R is
-        conversion factor is set to 10 V = 1000 mA
+        Set the DS8R's amplitude by writing a value to the DAQ analog output pin that corresponds to the DS8R's "Control" input. 
         
-        Calling this method alone does not trigger stimulation; it must be
-        called with a nonzero value before triggering stimulation.
-
+        This method alone does not trigger stimulation; it must be called with a nonzero value before calling a trigger method.
+        
+        This method assumes the DS8R's conversion factor is 10 V = 1000 mA.
+        
         Args:
             amplitude: Desired amplitude in mA
         """
@@ -150,8 +146,8 @@ class DAQ:
  
     def set_channel(self, channel: int) -> None:
         """
-        Turn on a specific D188 (channel switcher) channel. Passing 0 as an
-        argument turns off all channels.
+        Turn on a specific D188 (channel switcher) channel.
+        Passing 0 as an argument turns off all channels.
 
         This methods writes a HIGH value (i.e., `True` value) to the DAQ
         output pin corresponding to the desired D188 channel. The D188 is
@@ -168,20 +164,31 @@ class DAQ:
         self.switcher_channels.write([channel == i for i in range(8, 0, -1)])
 
     def trigger(self) -> None:
-        """Basic trigger method. This method doesn't control amplitude; for
-        stimulation to be delivered, a nonzero amplitude must be set before
+        """
+        Simplest possible trigger method.
+        For stimulation to be delivered, a nonzero amplitude must be set before
         calling this method.
 
-        When the trigger is set up on a digital out channel, max frequency is
-        ~500 Hz before the software timer introduces too much jitter to be
+        When the trigger is configured using a software timer, the max
+        frequency is ~500 Hz before the timer introduces too much jitter to be
         reliable.
-    
         """
         self.trigger_channel.write(True)
         self.trigger_channel.write(False)
 
-    def trigger_burst(self, frequency: float, burst_duration: float):
+    def start_ramp_up(self,
+                      goal_amplitude: float,
+                      frequency: float,
+                      ):
         """
+        Gradually increase the amplitude of the DS8R until goal_amplitude is reached.
+        """
+        pass
+        
+    def trigger_burst(self, frequency: float, burst_duration: float) -> None:
+        """
+        TODO: This method will likely be deprecated, but it should be tested for frequency speed before hand.
+
         Trigger a stimulation of given length and frequency.
         This method doesn't control amplitude; for stimulation to be delivered,
         a nonzero amplitude must be set before calling this method.
@@ -229,9 +236,7 @@ class DAQ:
         self.pico_channels.write(self.PICO_LOOKUP[0])
 
     def zero_all(self) -> None:
-        """
-        Reset all DAQ and Pico outputs to zero.
-        """
+        """Reset all DAQ and Pico outputs to zero."""
         self.set_amplitude(0)
         self.set_channel(0)
         self.set_pulse_with_pico(0)
@@ -247,6 +252,7 @@ class DAQ:
         """
         system = nidaqmx.system.System.local()
         
+        ## Wait for DAQ to be detected
         # if not system.devices:
         #     print("Cannot find any DAQ device(s). Check USB connections.")
         #     print("Waiting for connection...")
@@ -259,10 +265,7 @@ class DAQ:
 
     @staticmethod
     def print_devices_and_channels() -> None:
-        """
-        Print names and channels for each device found on the system.
-        """
-        # List all devices
+        """Print names and channels for each device found on the system."""
         system = NotImplemented.system.System.local()
         for device in system.devices:
             print(f"Device: {device.name}")
