@@ -1,6 +1,3 @@
-import csv
-from queue import Queue
-from threading import Thread
 import time
 from typing import List
 
@@ -33,7 +30,6 @@ class DAQ:
                  switcher_port: int = 0,
                  trigger_port: int = 2,
                  amplitude_port: int = 0,
-                 logging_file: str = None,
                  ) -> None:
         """
         Initialize the DAQ object with specified ports, where a port corresponds to set of physical pin inputs/outputs on the DAQ rather
@@ -47,12 +43,6 @@ class DAQ:
             trigger_port (int): Trigger channel port, defaults to 1
             amplitude_port (int): Amplitude control port, defaults to 0
         """
-        ### TESTING LOGGER ###
-        self.logging = False
-        if logging_file:
-            self.logging = True
-            self.logger = TimingLogger(logging_file)
-
         # Get the name of the first available DAQ device
         # This may be erroneous if >1 device is connected
         # It would be better to get device name in the code the inits
@@ -138,7 +128,7 @@ class DAQ:
         """
     
         if amplitude == 0: 
-            # Write true zero
+            # Write true zero (i.e., no offset)
             self.amplitude_channel.write(0) 
         else: 
             # Adding 1 helps counter DS8R jitter/offset
@@ -149,7 +139,7 @@ class DAQ:
         Turn on a specific D188 (channel switcher) channel.
         Passing 0 as an argument turns off all channels.
 
-        This methods writes a HIGH value (i.e., `True` value) to the DAQ
+        This methods writes a HIGH value (i.e., `True`) to the DAQ
         output pin corresponding to the desired D188 channel. The D188 is
         incapable of selecting more than 1 channel simultaneously, however.
         This means that a HIGH value written to >1 pin is rejected by the
@@ -175,55 +165,6 @@ class DAQ:
         """
         self.trigger_channel.write(True)
         self.trigger_channel.write(False)
-
-    def start_ramp_up(self,
-                      goal_amplitude: float,
-                      frequency: float,
-                      ):
-        """
-        Gradually increase the amplitude of the DS8R until goal_amplitude is reached.
-        """
-        pass
-        
-    def trigger_burst(self, frequency: float, burst_duration: float) -> None:
-        """
-        TODO: This method will likely be deprecated, but it should be tested for frequency speed before hand.
-
-        Trigger a stimulation of given length and frequency.
-        This method doesn't control amplitude; for stimulation to be delivered,
-        a nonzero amplitude must be set before calling this method.
-
-        When trigger is set up on a digital out channel, max frequency is
-        ~500 Hz before the DS8R complains about overlapping trigger pulses.
-        This is likely due to Python tripping over itself when delivering input
-        trigger signal to the DAQ.
-        """
-        if frequency > 0:
-            period = 1 / frequency
-        
-            burst_start = time.perf_counter()
-
-            if self.logging:
-                self.logger.log("burst has ended", "below are pulses")
-
-                if burst_duration == 0:
-                    self.logger.log("N/A: Zero burst duration ->", burst_duration)
-            else:
-                while (time.perf_counter() - burst_start) * 1000 < burst_duration:
-                    pulse_start = time.perf_counter()
-                    self.trigger_channel.write(True)
-                    while time.perf_counter() - pulse_start < period:
-                        pass
-                    self.trigger_channel.write(False)
-                    if self.logging:
-                        pulse_end = time.perf_counter()
-                        self.logger.log((pulse_end - pulse_start) * 1000, period * 1000)
-                if self.logging:
-                    burst_end = time.perf_counter()
-                    self.logger.log("pulse has ended", "below are bursts")
-                    self.logger.log((burst_end - burst_start)*1000, burst_duration)
-        elif frequency == 0 and self.logging:
-            self.logger.log("N/A: Zero frequency ->", frequency)
 
     def set_pulse_with_pico(self, pulses: int) -> None:
         """
@@ -253,20 +194,22 @@ class DAQ:
         system = nidaqmx.system.System.local()
         
         ## Wait for DAQ to be detected
-        # if not system.devices:
-        #     print("Cannot find any DAQ device(s). Check USB connections.")
-        #     print("Waiting for connection...")
+        if not system.devices:
+            print("Cannot find DAQ device(s). Check USB connections.")
+            print("Waiting for connection...")
+            print("Ctrl + C to quit")
 
-        #     while not system.devices:
-        #         pass
-        #     print("Device found! O frabjous day!")
-        #     time.sleep(1) # Add delay to allow time to read new connection
+            while not system.devices:
+                pass
+
+            print("Device found! O frabjous day!")
+            time.sleep(1) # Add delay to allow time to read new connection
         return system.devices
 
     @staticmethod
     def print_devices_and_channels() -> None:
         """Print names and channels for each device found on the system."""
-        system = NotImplemented.system.System.local()
+        system = nidaqmx.system.System.local()
         for device in system.devices:
             print(f"Device: {device.name}")
             print("All Available Channels:")
@@ -276,79 +219,3 @@ class DAQ:
             print(f"\tDO Channels: {[chan.name for chan in device.do_lines]}")
             print(f"\tCI Channels: {[chan.name for chan in device.ci_physical_chans]}")
             print(f"\tCO Channels: {[chan.name for chan in device.co_physical_chans]}")
-
-#### BELOW IS ONLY REQUIRED FOR TESTING ####
-#### IT WILL BE DELETED OR MOVED SOON   ####
-    def run_time_test(self, csv_file, printing=False):
-        import pandas as pd
-
-        df = pd.read_csv(csv_file, header=None)
-        print("~~ BEGINNING TEST ~~")
-        for _, row in df.iterrows():
-            if printing:
-                print(f"Stimming at {row.iloc[0]} mA, {row.iloc[1]} Hz for {row.iloc[2]} ms, then resting for {row.iloc[3]}")
-            self.set_amplitude(row.iloc[0])
-            start = time.perf_counter()
-            self.trigger_burst(row.iloc[1], row.iloc[2])
-            burst_end = time.perf_counter()
-
-            time.sleep(row.iloc[3]/1000)
-            if self.logging:
-                break_end = time.perf_counter()
-                self.logger.log("break below", "break below")
-                self.logger.log(((break_end - start) - (burst_end - start)) * 1000, row.iloc[3])
-    
-        print("~~ TEST COMPLETE ~~")
-
-    def generate_test_values(self, filename, qty=100):
-        import random
-        possible_channels = list(range(1, 9))
-        possible_frequencies = [0, 1, 5, 30, 60, 100, 500]
-        possible_amplitudes = [0, 1, 2, 3, 4, 5.5]
-        possible_durations = [5, 10, 100, 250, 1500, 5000]
-
-        channies = [random.choice(possible_channels) for _ in range(qty)]
-        amplies = [random.choice(possible_amplitudes) for _ in range(qty)]
-        freqies = [random.choice(possible_frequencies) for _ in range(qty)]
-        bursties = [random.choice(possible_durations) for _ in range(qty)]
-        # breakies = [random.choice(possible_durations) for _ in range(qty)]
-        
-        def write_test_values(filename):
-            with open(filename, "w", newline="") as file:
-                writer = csv.writer(file)
-                for i in range(qty):
-                    writer.writerow([channies[i],
-                                    amplies[i],
-                                     freqies[i],
-                                     bursties[i],
-                                    #  breakies[i],
-                                     ])
-        write_test_values(filename)
-
-class TimingLogger:
-    def __init__(self, filename: str):
-        self.filename = filename
-        self.queue = Queue()
-        self.is_running = True
-        self.thread = Thread(target=self._logger_thread)
-        self.thread.start()
-
-    def log(self, actual: float, expected: float):
-        self.queue.put((actual, expected))
-
-    def _logger_thread(self):
-        with open(self.filename, 'w', newline='') as csvfile:
-            writer = csv.writer(csvfile)
-            writer.writerow(['Actual', 'Expected'])
-            while self.is_running or not self.queue.empty():
-                try:
-            # This is using a timeout to avoid blocking indefinitely
-            # if is_running becomes False while the queue is empty
-                    actual, expected = self.queue.get(timeout=1)
-                    writer.writerow([actual, expected])
-                except Exception:
-                    continue
-
-    def stop(self):
-        self.is_running = False
-        self.thread.join()
