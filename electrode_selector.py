@@ -2,7 +2,7 @@ from enum import Enum
 
 from PySide6.QtCore import QRect, QSize, Qt, Signal, Slot
 from PySide6.QtGui import QBrush, QPainter, QPen
-from PySide6.QtWidgets import QApplication, QGridLayout, QPushButton, QWidget 
+from PySide6.QtWidgets import QGridLayout, QPushButton, QWidget 
 
 class ElectrodeShape(Enum):
     circle = 1
