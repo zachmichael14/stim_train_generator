@@ -2,7 +2,7 @@ from enum import Enum
 
 from PySide6.QtCore import QRect, QSize, Qt, Signal, Slot
 from PySide6.QtGui import QBrush, QPainter, QPen
-from PySide6.QtWidgets import QGridLayout, QPushButton, QWidget 
+from PySide6.QtWidgets import QGridLayout, QGroupBox, QPushButton, QVBoxLayout, QWidget 
 
 class ElectrodeShape(Enum):
     circle = 1
@@ -52,6 +52,7 @@ class ElectrodeButton(QPushButton):
         painter.drawText(rect, Qt.AlignCenter, str(self.channel_id))
 
 
+
 class ElectrodeSelectorWidget(QWidget):
     signal_shape_selected = Signal(int)
 
@@ -60,9 +61,16 @@ class ElectrodeSelectorWidget(QWidget):
         self.initUI()
 
     def initUI(self):
-        layout = QGridLayout()
-        self.setLayout(layout)
+        # Creating the main layout for the widget
+        main_layout = QVBoxLayout(self)
 
+        # Creating the groupbox and setting a title
+        group_box = QGroupBox("Cathode Selector")
+        
+        # Creating the layout for the group box
+        grid_layout = QGridLayout()
+
+        # List of shapes with positions
         shapes = [
             (1, ElectrodeShape.circle, 0, 1), 
             (2, ElectrodeShape.circle, 0, 2),
@@ -74,10 +82,20 @@ class ElectrodeSelectorWidget(QWidget):
             (6, ElectrodeShape.circle, 2, 2)
         ]
 
+        # Adding buttons to the grid layout
         for channel_id, shape_type, row, col in shapes:
             button = ElectrodeButton(channel_id, shape_type)
             button.toggled.connect(self.toggle_callback)
-            layout.addWidget(button, row, col)
+            grid_layout.addWidget(button, row, col)
+
+        # Setting the grid layout to the group box
+        group_box.setLayout(grid_layout)
+
+        # Adding the group box to the main layout
+        main_layout.addWidget(group_box)
+        
+        # Setting the main layout for the widget
+        self.setLayout(main_layout)
 
     @Slot(bool)
     def toggle_callback(self, checked):
@@ -89,4 +107,5 @@ class ElectrodeSelectorWidget(QWidget):
             self.signal_shape_selected.emit(sender.channel_id)
 
     def sizeHint(self):
-        return QSize(220, 180)
+        return QSize(50, 50)
+
