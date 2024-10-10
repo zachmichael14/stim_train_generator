@@ -54,7 +54,7 @@ class ElectrodeButton(QPushButton):
 
 
 class ElectrodeSelectorWidget(QWidget):
-    signal_shape_selected = Signal(int)
+    signal_electrode_selected = Signal(int)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -104,7 +104,7 @@ class ElectrodeSelectorWidget(QWidget):
             for button in self.findChildren(ElectrodeButton):
                 if button != sender:
                     button.setChecked(False)
-            self.signal_shape_selected.emit(sender.channel_id)
+            self.signal_electrode_selected.emit(sender.channel_id)
 
     def sizeHint(self):
         return QSize(50, 50)
