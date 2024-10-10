@@ -202,7 +202,7 @@ class DAQ:
             while not system.devices:
                 pass
 
-            print("Device found! O frabjous day!")
+            print("Device found! Kept you waiting, huh?")
             time.sleep(1) # Add delay to allow time to read new connection
         return system.devices
 
