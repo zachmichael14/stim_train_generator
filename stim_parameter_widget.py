@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QDoubleSpinBox, QGridLayout, QGroupBox, QLabel, QLineEdit, QRadioButton, QVBoxLayout, QHBoxLayout, QTextEdit, QWidget
+from PySide6.QtWidgets import QGridLayout, QGroupBox, QLabel, QLineEdit, QRadioButton, QVBoxLayout, QHBoxLayout, QWidget
 
 class StimParameterWidget(QWidget):
     def __init__(self,
@@ -23,7 +23,6 @@ class StimParameterWidget(QWidget):
         group_box.setChecked(False)
         group_layout = QGridLayout(group_box)
     
-
         self.max_radio = QRadioButton()
         self.rest_radio = QRadioButton()
         self.min_radio = QRadioButton()
