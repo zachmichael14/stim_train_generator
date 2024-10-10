@@ -4,7 +4,7 @@ from PySide6.QtWidgets import QWidget
 
 
 class SlideToggle(QWidget):
-    toggled = Signal(bool)
+    signal_toggled = Signal(bool)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -33,7 +33,7 @@ class SlideToggle(QWidget):
             self._animation.setStartValue(self._handle_position)
             self._animation.setEndValue(34 if self._is_checked else 4)
             self._animation.start()
-            self.toggled.emit(self._is_checked)
+            self.signal_toggled.emit(self._is_checked)
 
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -68,4 +68,4 @@ class SlideToggle(QWidget):
             self._is_checked = checked
             self._handle_position = 34 if checked else 4
             self.update()
-            self.toggled.emit(self._is_checked)
+            self.signal_toggled.emit(self._is_checked)
