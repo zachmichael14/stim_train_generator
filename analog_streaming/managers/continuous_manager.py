@@ -12,7 +12,7 @@ class ContinuousStimManager(QObject):
         self.amplitude = 0.0
         self.frequency = 30.0
         self.worker = StimWorker()
-        self.batch_updates = False
+        self.are_updates_live = False
         self._running = False
         self._lock = threading.Lock()
         self._thread = None
@@ -38,7 +38,7 @@ class ContinuousStimManager(QObject):
                        channel: int = None,
                        frequency: float = None,
                        amplitude: float = None,
-                       batch_updates: bool = None,
+                       are_updates_live: bool = None,
                        ):
         with self._lock:
             if channel is not None:
@@ -47,15 +47,15 @@ class ContinuousStimManager(QObject):
                 self.frequency = frequency
             if amplitude is not None:
                 self.amplitude = amplitude
-            if batch_updates is not None:
-                self.batch_updates = batch_updates
+            if are_updates_live is not None:
+                self.are_updates_live = are_updates_live
 
             # Setting this to True assumes params are different from previous.
             # While this method shouldn't be called unless params are actually
             # changing, this assumption could be erroneous.
             self._parameters_changed = True
 
-        if not self.batch_updates:
+        if self.are_updates_live:
             self.apply_changes()
 
     def apply_changes(self):
@@ -67,7 +67,7 @@ class ContinuousStimManager(QObject):
 
     def _run(self):
         while self._running:
-            if not self.batch_updates and self._parameters_changed:
+            if not self.are_updates_live and self._parameters_changed:
                 self.apply_changes()
                 self._parameters_changed = False
 
