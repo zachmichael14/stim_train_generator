@@ -6,7 +6,7 @@ from PySide6.QtWidgets import (
     QHBoxLayout, QMainWindow, QWidget, QApplication, QFileDialog, QMessageBox
 )
 
-from utils.config_defaults import ConfigDefaults
+from utils.defaults import ConfigDefaults
 from analog_streaming.managers.config_manager import ConfigManager
 from analog_streaming.ui.composite_widgets.config_widget import ConfigWidget
 from analog_streaming.ui.basic_components.sensor_confirmation import SensorVisualizationWidget
