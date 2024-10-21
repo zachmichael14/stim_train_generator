@@ -83,7 +83,7 @@ class StimWorker:
         if amplitude is not None:
             self.amplitude = amplitude
         
-        self.schedule_events([(0, self.frequency, self.amplitude, 1/self.frequency)])
+        self.schedule_events([(self.channel, self.frequency, self.amplitude, 1/self.frequency)])
 
     def set_mode(self, mode: StimLoopMode):
         self.loop_mode = mode
