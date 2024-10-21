@@ -35,6 +35,12 @@ class ContinuousStimWidget(QWidget):
         self.instantaneous_widget.signal_frequency_changed.connect(self._handle_frequency_changed)
         self.instantaneous_widget.signal_amplitude_changed.connect(self._handle_amplitude_changed)
 
+        self.amplitude_widget.signal_parameter_toggled.connect(self._handle_amplitude_ramping)
+
+    def _handle_amplitude_ramping(self, parameter_is_on: bool):
+        # self.stim_manager.
+        pass
+
     def _handle_electrode_selected(self, channel: int):
         self.stim_manager.set_parameters(channel=channel)
 
@@ -48,10 +54,9 @@ class ContinuousStimWidget(QWidget):
         self.stim_manager.set_parameters(frequency=frequency)
 
     def _handle_amplitude_changed(self, amplitude: float):
-        print(f"setting amplitude")
         self.stim_manager.set_parameters(amplitude=amplitude)
 
-    def _handle_update_mode_changed(self, is_batch_mode):
+    def _handle_update_mode_changed(self, are_updates_live):
         # The signal from the toggle button is True if the button is not on the
         # default option (i.e., live updates).
-        self.stim_manager.set_parameters(batch_updates=is_batch_mode)
+        self.stim_manager.set_parameters(are_updates_live=are_updates_live)
