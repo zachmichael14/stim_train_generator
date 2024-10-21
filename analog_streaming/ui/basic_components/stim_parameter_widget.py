@@ -1,6 +1,16 @@
 from PySide6.QtWidgets import QGridLayout, QGroupBox, QLabel, QLineEdit, QRadioButton, QVBoxLayout, QHBoxLayout, QWidget
 
+from PySide6.QtCore import Signal, Slot
+
 class StimParameterWidget(QWidget):
+    signal_parameter_toggled = Signal(bool)
+    
+    signal_max_updated = Signal(float)
+    signal_rest_updated = Signal(float)
+    signal_min_updated = Signal(float)
+
+    signal_ramp_requested = Signal(float, float)
+
     def __init__(self,
                  parameter: str = "Amplitude", 
                  unit: str = "mA",
@@ -22,6 +32,7 @@ class StimParameterWidget(QWidget):
         group_box.setCheckable(True)
         group_box.setChecked(False)
         group_layout = QGridLayout(group_box)
+        group_box.toggled.connect(self._handle_parameter_toggled)
     
         self.max_radio = QRadioButton()
         self.rest_radio = QRadioButton()
@@ -50,7 +61,7 @@ class StimParameterWidget(QWidget):
         self.slider_value_label = QLabel(f"Current: {self.default_rest} {self.unit}")
         group_layout.addWidget(self.slider_value_label, 0, 4, 1, 2)
 
-        self.min_edit.editingFinished.connect(self.update_minimum)
+        self.min_edit.editingFinished.connect(self._update_minimum)
         self.max_edit.editingFinished.connect(self.update_maximum)
         self.rest_edit.editingFinished.connect(self.update_rest_value)
 
@@ -88,31 +99,44 @@ class StimParameterWidget(QWidget):
 
         self.setLayout(layout)
 
-    def update_minimum(self) -> None:
+    @Slot(bool)
+    def _handle_parameter_toggled(self, is_on: bool):
+        self.signal_parameter_toggled.emit(is_on)
+
+    @Slot(float)
+    def _update_minimum(self) -> None:
         try:
             value = float(self.min_edit.text())
+            self.signal_min_updated.emit(value)
             print(f"Updating minimum {value}")
         except ValueError:
             pass
 
+    @Slot(float)
     def update_maximum(self) -> None:
         try:
             value = float(self.max_edit.text())
-            print(f"Updating maximum {value}")
-
+            self.signal_max_updated.emit(value)
         except ValueError:
             pass
 
+    @Slot(float)
     def update_rest_value(self) -> None:
         try:
-            rest_value = float(self.rest_edit.text())
-            print(f"Updating rest value: ensure this is between min and max.")
+            value = float(self.rest_edit.text())
+            if not self.min_edit.text() < value < self.max_edit.text():
+                print("Rest value is not between min and max")
+                pass
+            self.signal_rest_updated.emit(value)
         except ValueError:
             pass
 
     def go_to_min(self) -> None:
         if self.min_radio.isChecked():
             print("Ramping to min")
+            minimum = float(self.min_edit.text())
+            time = float(self.min)
+            self.signal_ramp_requested(float(self.min_edit.text()), )
 
     def go_to_max(self) -> None:
         if self.max_radio.isChecked():
@@ -125,6 +149,3 @@ class StimParameterWidget(QWidget):
                 print("Ramping to rest")
             except ValueError:
                 pass
-
-    def update_slider_value_label(self) -> None:
-        print("Updating current value")
