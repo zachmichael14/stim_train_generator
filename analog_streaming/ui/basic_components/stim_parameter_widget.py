@@ -1,6 +1,7 @@
 from PySide6.QtWidgets import QGridLayout, QGroupBox, QLabel, QLineEdit, QRadioButton, QVBoxLayout, QHBoxLayout, QWidget
 
 from PySide6.QtCore import Signal, Slot
+from ...utils.defaults import StimDefaults
 
 class StimParameterWidget(QWidget):
     signal_parameter_toggled = Signal(bool)
@@ -14,11 +15,11 @@ class StimParameterWidget(QWidget):
     def __init__(self,
                  parameter: str = "Amplitude", 
                  unit: str = "mA",
-                 default_max: float = 1.0,
-                 default_rest: float = 0.5,
-                 default_min: float = 0.0,
-                 default_start_to_max: float = 120,
-                 default_rest_to_max: float = 10):
+                 default_max: float = StimDefaults.AmplitudeDefaults.RAMP_MAX,
+                 default_rest: float = StimDefaults.AmplitudeDefaults.RAMP_REST,
+                 default_min: float = StimDefaults.AmplitudeDefaults.RAMP_MIN,
+                 default_start_to_max: float = StimDefaults.GLOBAL_MIN_TO_MAX_RAMP_TIME,
+                 default_rest_to_max: float = StimDefaults.GLOBAL_REST_TO_RAMP_TIME):
         super().__init__()
         self.unit = unit
         self.default_max = default_max
@@ -134,9 +135,9 @@ class StimParameterWidget(QWidget):
     def go_to_min(self) -> None:
         if self.min_radio.isChecked():
             print("Ramping to min")
-            minimum = float(self.min_edit.text())
-            time = float(self.min)
-            self.signal_ramp_requested(float(self.min_edit.text()), )
+            # minimum = float(self.min_edit.text())
+            # time = float(self.min)
+            # self.signal_ramp_requested(float(self.min_edit.text()), )
 
     def go_to_max(self) -> None:
         if self.max_radio.isChecked():

@@ -5,6 +5,7 @@ import time
 import pandas as pd
 
 from analog_streaming.daq import DAQ
+from ..utils.defaults import StimDefaults
 
 class StimLoopMode(Enum):
     NO_LOOP = 1
@@ -17,9 +18,9 @@ class StimWorker:
         self.daq = DAQ()
         self.loop_mode = StimLoopMode.LOOP_ALL
         self.channel = None
-        self.frequency = 2.0
-        self.amplitude = 0.0
-        self.scheduled_stim_events = [("foo", "barr", self.amplitude, (1/self.frequency))]
+        self.frequency = StimDefaults.FrequencyDefaults.GLOBAL_FREQUENCY
+        self.amplitude = StimDefaults.AmplitudeDefaults.GLOBAL_AMPLITUDE
+        self.scheduled_stim_events = [(0, self.frequency, self.amplitude, (1/self.frequency))]
         self.uploaded_stims = pd.DataFrame(self.scheduled_stim_events)
 
     def run(self) -> None:

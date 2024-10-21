@@ -5,6 +5,8 @@ from ..basic_components.stim_parameter_widget import StimParameterWidget
 from ..basic_components.instantaneous_control import InstantaneousControlWidget
 from analog_streaming.managers.continuous_manager import ContinuousStimManager
 
+from ...utils.defaults import StimDefaults
+
 
 class ContinuousStimWidget(QWidget):
     def __init__(self, continuous_stim_manager: ContinuousStimManager):
@@ -15,7 +17,9 @@ class ContinuousStimWidget(QWidget):
         self.electrode_selector = ElectrodeSelectorWidget()
         self.amplitude_widget = StimParameterWidget()
         self.frequency_widget = StimParameterWidget(parameter="Frequency",
-                                                    unit="Hz", default_max=100, default_rest=30, default_min=1)
+                                                    unit="Hz", default_max=StimDefaults.FrequencyDefaults.RAMP_MAX,
+                                                    default_rest=StimDefaults.FrequencyDefaults.RAMP_REST,
+                                                    default_min=StimDefaults.FrequencyDefaults.RAMP_MIN)
         self.instantaneous_widget = InstantaneousControlWidget()
 
         self._connect_signals()
