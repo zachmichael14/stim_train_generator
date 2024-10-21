@@ -1,10 +1,11 @@
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, 
-    QSpinBox, QDoubleSpinBox
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
 )
 
+from .debounced_spin_box import DebouncedDoubleSpinBox
 from .slide_toggle import SlideToggle
+
 
 class InstantaneousControlWidget(QWidget):
     signal_update_mode_changed = Signal(bool)
@@ -17,23 +18,21 @@ class InstantaneousControlWidget(QWidget):
         main_layout = QVBoxLayout()
         
         freq_layout = QHBoxLayout()
-        freq_label = QLabel("Frequency")
-        self.freq_spinbox = QDoubleSpinBox()
-        self.freq_spinbox.editingFinished.connect(self._handle_frequency_changed)
+        freq_label = QLabel("Frequency (Hz)")
+        self.freq_spinbox = DebouncedDoubleSpinBox(max_change_per_step=50)
+        self.freq_spinbox.valueChangedFinished.connect(self._handle_frequency_changed)
         self.freq_spinbox.setRange(0, 500)
-        self.freq_spinbox.setSuffix(" Hz")
         self.freq_spinbox.setValue(30)
 
         freq_layout.addWidget(freq_label)
         freq_layout.addWidget(self.freq_spinbox)
         
         amp_layout = QHBoxLayout()
-        amp_label = QLabel("Amplitude")
-        self.amp_spinbox = QSpinBox()
-        self.freq_spinbox.editingFinished.connect(self._handle_amplitude_changed)
+        amp_label = QLabel("Amplitude (mA)")
+        self.amp_spinbox = DebouncedDoubleSpinBox(max_change_per_step=15)
+        self.amp_spinbox.valueChangedFinished.connect(self._handle_amplitude_changed)
 
         self.amp_spinbox.setRange(0, 1000)
-        self.amp_spinbox.setSuffix(" mA")
         self.amp_spinbox.setValue(0) 
         amp_layout.addWidget(amp_label)
         amp_layout.addWidget(self.amp_spinbox)
