@@ -9,6 +9,10 @@ class DAQ:
     
     This class focuses on allowing the DAQ to control a DS8R stimulator.
     """
+
+    VOLT_TO_AMP_CONVERSION = 10 / 1000 # DS8R's conversion factor
+    AMP_OFFSET = 0.015 # Added to amplitude to minimize DS8R's variability
+
     # Cached for faster lookup
     PICO_LOOKUP = {
         0: [False, False, False, False],
@@ -25,6 +29,7 @@ class DAQ:
         11: [True, True, True, True],
     }
 
+   
     def __init__(self,
                  pico_port: int = 1,
                  switcher_port: int = 0,
@@ -131,8 +136,9 @@ class DAQ:
             # Write true zero (i.e., no offset)
             self.amplitude_channel.write(0) 
         else: 
-            # Adding 1 helps counter DS8R jitter/offset
-            self.amplitude_channel.write((amplitude + 1) / 100)
+            # Adding an offset helps counter DS8R variability when
+            # using 10V = 1000mA conversion factor
+            self.amplitude_channel.write((amplitude * self.VOLT_TO_AMP_CONVERSION) + self.AMP_OFFSET)
  
     def set_channel(self, channel: int) -> None:
         """
