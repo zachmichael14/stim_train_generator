@@ -29,7 +29,7 @@ class StimParameterWidget(QWidget):
         layout = QVBoxLayout()
 
         # Main parameter group box
-        group_box = QGroupBox(f"{parameter}")
+        group_box = QGroupBox(f"{parameter} Ramping")
         group_box.setCheckable(True)
         group_box.setChecked(False)
         group_layout = QGridLayout(group_box)
