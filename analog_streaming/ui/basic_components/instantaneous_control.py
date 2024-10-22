@@ -59,10 +59,11 @@ class InstantaneousControlWidget(QWidget):
         self.update_button = QPushButton("Send Updates")
         self.update_button.clicked.connect(self._handle_update_button_clicked)
 
-        group_box_layout.addLayout(freq_layout)
-        group_box_layout.addLayout(amp_layout)
         group_box_layout.addLayout(on_off_layout)
         group_box_layout.addLayout(update_layout)
+
+        group_box_layout.addLayout(freq_layout)
+        group_box_layout.addLayout(amp_layout)
         group_box_layout.addWidget(self.update_button)
         group_box_layout.addWidget(pause_button)
 
