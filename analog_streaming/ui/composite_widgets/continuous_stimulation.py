@@ -15,19 +15,19 @@ class ContinuousStimWidget(QWidget):
         self.stim_manager = continuous_stim_manager
 
         self.electrode_selector = ElectrodeSelectorWidget()
-        self.amplitude_widget = StimParameterWidget()
         self.frequency_widget = StimParameterWidget(parameter="Frequency",
                                                     unit="Hz", default_max=StimDefaults.FrequencyDefaults.RAMP_MAX,
                                                     default_rest=StimDefaults.FrequencyDefaults.RAMP_REST,
                                                     default_min=StimDefaults.FrequencyDefaults.RAMP_MIN)
+        self.amplitude_widget = StimParameterWidget()
         self.instantaneous_widget = InstantaneousControlWidget()
 
         self._connect_signals()
         
         main_layout = QHBoxLayout()
         main_layout.addWidget(self.electrode_selector)
-        main_layout.addWidget(self.amplitude_widget)
         main_layout.addWidget(self.frequency_widget)
+        main_layout.addWidget(self.amplitude_widget)
         main_layout.addWidget(self.instantaneous_widget)
         self.setLayout(main_layout)
 
