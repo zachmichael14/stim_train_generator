@@ -4,7 +4,7 @@ from PySide6.QtWidgets import (
 )
 
 from analog_streaming.ui.basic_components.import_export import ImportExportWidget
-from analog_streaming.utils.config_defaults import ConfigDefaults
+from analog_streaming.utils.defaults import ConfigDefaults
 
 
 class ConfigWidget(QWidget):
