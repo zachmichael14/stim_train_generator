@@ -22,8 +22,8 @@ class InstantaneousControlWidget(QWidget):
         self.onoff_button = SlideToggle()
         self.live_update_toggle = SlideToggle()
 
-        self.freq_spinbox = DebouncedDoubleSpinBox(max_change_per_step=StimDefaults.FrequencyDefaults.MAX_INCREMENT_SIZE)
-        self.amp_spinbox = DebouncedDoubleSpinBox(max_change_per_step=StimDefaults.AmplitudeDefaults.MAX_INCREMENT_SIZE)
+        self.freq_spinbox = DebouncedDoubleSpinBox(max_increase=StimDefaults.FrequencyDefaults.MAX_INCREMENT_SIZE)
+        self.amp_spinbox = DebouncedDoubleSpinBox(max_increase=StimDefaults.AmplitudeDefaults.MAX_INCREMENT_SIZE)
         
         self.send_update_button = QPushButton("Send Updates")
         self.pause_button = QToolButton()
@@ -61,14 +61,17 @@ class InstantaneousControlWidget(QWidget):
         self.pause_button.setCheckable(True) 
 
     def _connect_signals(self):
-        self.onoff_button.signal_toggled.connect(self.signal_on_off_changed.emit)
+        self.onoff_button.signal_toggled.connect(self._handle_on_off_toggle)
         self.live_update_toggle.signal_toggled.connect(self._handle_update_mode_changed)
 
-        self.freq_spinbox.valueChangedFinished.connect(self._handle_frequency_changed)
-        self.amp_spinbox.valueChangedFinished.connect(self._handle_amplitude_changed)
+        self.freq_spinbox.signal_value_changed.connect(self._handle_frequency_changed)
+        self.amp_spinbox.signal_value_changed.connect(self._handle_amplitude_changed)
 
         self.send_update_button.clicked.connect(self._handle_update_button_clicked)
         self.pause_button.clicked.connect(self._handle_pause_button_clicked)
+
+    def _handle_on_off_toggle(self, is_on: bool):
+        self.signal_on_off_changed.emit(is_on)
 
     def _handle_pause_button_clicked(self, is_paused: bool):
         self.signal_pause_toggled.emit(is_paused)
@@ -90,5 +93,6 @@ class InstantaneousControlWidget(QWidget):
 
     def _handle_update_mode_changed(self, are_updates_live: bool):
         self.signal_update_mode_changed.emit(are_updates_live)
+        # Button is only enable when updates are not live
         self.send_update_button.setEnabled(not are_updates_live)
         self.send_update_button.setText("Updates Are Live" if are_updates_live else "Send Updates")
