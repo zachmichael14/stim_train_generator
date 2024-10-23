@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QWidget, QHBoxLayout
 
 from ..basic_components.electrode_selector import ElectrodeSelectorWidget
-from ..basic_components.stim_parameter_widget import StimParameterWidget
+from ..basic_components.parameter_ramp import ParameterRampWidget
 from ..basic_components.instantaneous_control import InstantaneousControlWidget
 from analog_streaming.managers.continuous_manager import ContinuousStimManager
 
@@ -15,11 +15,11 @@ class ContinuousStimWidget(QWidget):
         self.stim_manager = continuous_stim_manager
 
         self.electrode_selector = ElectrodeSelectorWidget()
-        self.frequency_widget = StimParameterWidget(parameter="Frequency",
+        self.frequency_widget = ParameterRampWidget(parameter="Frequency",
                                                     unit="Hz", default_max=StimDefaults.FrequencyDefaults.RAMP_MAX,
                                                     default_rest=StimDefaults.FrequencyDefaults.RAMP_REST,
                                                     default_min=StimDefaults.FrequencyDefaults.RAMP_MIN)
-        self.amplitude_widget = StimParameterWidget()
+        self.amplitude_widget = ParameterRampWidget()
         self.instantaneous_widget = InstantaneousControlWidget()
 
         self._connect_signals()
@@ -40,10 +40,24 @@ class ContinuousStimWidget(QWidget):
         self.instantaneous_widget.signal_amplitude_changed.connect(self._handle_amplitude_changed)
 
         self.amplitude_widget.signal_parameter_toggled.connect(self._handle_amplitude_ramping)
+        self.frequency_widget.signal_parameter_toggled.connect(self._handle_frequency_ramping)
+
+    def _handle_frequency_ramping(self, parameter_is_on: bool):
+        self.stim_manager.set_frequency_ramping(parameter_is_on)
+        if not parameter_is_on:
+            return
+        
+        if not self.amplitude_widget.is_enabled():
+            print("Ramping frequency only")
 
     def _handle_amplitude_ramping(self, parameter_is_on: bool):
-        # self.stim_manager.
-        pass
+        self.stim_manager.set_amplitude_ramping(parameter_is_on)
+        if not parameter_is_on:
+            return
+        
+        if not self.frequency_widget.is_enabled():
+            print("Ramping amplitude only")
+
 
     def _handle_electrode_selected(self, channel: int):
         self.stim_manager.set_parameters(channel=channel)

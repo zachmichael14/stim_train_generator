@@ -3,13 +3,14 @@ from PySide6.QtWidgets import QGridLayout, QGroupBox, QLabel, QLineEdit, QRadioB
 from PySide6.QtCore import Signal, Slot
 from ...utils.defaults import StimDefaults
 
-class StimParameterWidget(QWidget):
+class ParameterRampWidget(QWidget):
     signal_parameter_toggled = Signal(bool)
     
     signal_max_updated = Signal(float)
     signal_rest_updated = Signal(float)
     signal_min_updated = Signal(float)
 
+    # desired value, ramp duration
     signal_ramp_requested = Signal(float, float)
 
     def __init__(self,
@@ -29,11 +30,11 @@ class StimParameterWidget(QWidget):
         layout = QVBoxLayout()
 
         # Main parameter group box
-        group_box = QGroupBox(f"{parameter} Ramping")
-        group_box.setCheckable(True)
-        group_box.setChecked(False)
-        group_layout = QGridLayout(group_box)
-        group_box.toggled.connect(self._handle_parameter_toggled)
+        self.group_box = QGroupBox(f"{parameter} Ramping")
+        self.group_box.setCheckable(True)
+        self.group_box.setChecked(False)
+        group_layout = QGridLayout(self.group_box)
+        self.group_box.toggled.connect(self._handle_parameter_toggled)
     
         self.max_radio = QRadioButton()
         self.rest_radio = QRadioButton()
@@ -95,10 +96,13 @@ class StimParameterWidget(QWidget):
 
         # Adding both the StimParameter group box and the RampPeriod group box to the main layout
         group_layout.addWidget(ramp_group_box, 5, 0, 1, -1)
-        layout.addWidget(group_box)
-        # layout.addWidget(ramp_group_box)
+        layout.addWidget(self.group_box)
+        # layout.addWidget(ramp_self.group_box)
 
         self.setLayout(layout)
+
+    def is_enabled(self):
+        return self.group_box.isChecked()
 
     @Slot(bool)
     def _handle_parameter_toggled(self, is_on: bool):
