@@ -49,6 +49,7 @@ class DebouncedDoubleSpinBox(QDoubleSpinBox):
             old_value = self.value()
             super().keyPressEvent(event)
             self._limit_change(old_value)
+            self._emit_if_changed()
         else:
             # Typing is in progess
             self._is_typing = True
