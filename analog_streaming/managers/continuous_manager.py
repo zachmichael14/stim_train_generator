@@ -8,9 +8,10 @@ class ContinuousStimManager(QObject):
 
     def __init__(self):
         super().__init__()
-        self.channel = None
-        self.amplitude = 0.0
-        self.frequency = 30.0
+        self.current_channel = None
+        self.current_amplitude = 0.0
+        self.current_frequency = 30.0
+        
         self.worker = StimWorker()
         self.are_updates_live = False
         self._running = False
@@ -42,11 +43,11 @@ class ContinuousStimManager(QObject):
                        ):
         with self._lock:
             if channel is not None:
-                self.channel = channel
+                self.current_channel = channel
             if frequency is not None:
-                self.frequency = frequency
+                self.current_frequency = frequency
             if amplitude is not None:
-                self.amplitude = amplitude
+                self.current_amplitude = amplitude
             if are_updates_live is not None:
                 self.are_updates_live = are_updates_live
 
@@ -60,9 +61,9 @@ class ContinuousStimManager(QObject):
 
     def apply_changes(self):
         with self._lock:
-            self.worker.set_parameters(self.channel,
-                                       self.frequency,
-                                       self.amplitude)
+            self.worker.set_parameters(self.current_channel,
+                                       self.current_frequency,
+                                       self.current_amplitude)
             # self.parameters_updated.emit()
 
     def _run(self):
