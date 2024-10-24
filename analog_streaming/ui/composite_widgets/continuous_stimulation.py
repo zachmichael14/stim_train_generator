@@ -43,7 +43,7 @@ class ContinuousStimWidget(QWidget):
         self.frequency_widget.signal_parameter_toggled.connect(self._handle_frequency_ramping)
 
     def _handle_frequency_ramping(self, parameter_is_on: bool):
-        self.stim_manager.set_frequency_ramping(parameter_is_on)
+        # self.stim_manager.set_frequency_ramping(parameter_is_on)
         if not parameter_is_on:
             return
         
@@ -51,7 +51,7 @@ class ContinuousStimWidget(QWidget):
             print("Ramping frequency only")
 
     def _handle_amplitude_ramping(self, parameter_is_on: bool):
-        self.stim_manager.set_amplitude_ramping(parameter_is_on)
+        # self.stim_manager.set_amplitude_ramping(parameter_is_on)
         if not parameter_is_on:
             return
         
