@@ -23,8 +23,8 @@ class DebouncedDoubleSpinBox(QDoubleSpinBox):
         super().__init__()
         self._max_increase: float = max_increase
         # Previous value is stored to enforce step limitations, if any
-        self._previous_value: float = self.value()
         self._is_typing: bool = False
+        self._previous_value: float = None
         
         self.signal_value_changed.connect(self._handle_value_changed)
 
@@ -41,20 +41,24 @@ class DebouncedDoubleSpinBox(QDoubleSpinBox):
         key = event.key()
         if key in (Qt.Key_Enter, Qt.Key_Return):
             self._is_typing = False
-            self._limit_change(self._previous_value)
+
+            self._limit_change()
             self._emit_if_changed()
 
         if key in (Qt.Key_Up, Qt.Key_Down):
             self._is_typing = False
-            old_value = self.value()
             super().keyPressEvent(event)
-            self._limit_change(old_value)
+            self._limit_change()
             self._emit_if_changed()
         else:
             # Typing is in progess
             self._is_typing = True
-            super().keyPressEvent(event)       
-    
+            super().keyPressEvent(event)
+
+    def focusInEvent(self, event) -> None:
+        super().focusInEvent(event)
+        self._previous_value = self.value()
+
     def focusOutEvent(self, event) -> None:
         """
         Handles focus out events.
@@ -67,7 +71,7 @@ class DebouncedDoubleSpinBox(QDoubleSpinBox):
         """
         if self._is_typing:
             self._is_typing = False
-            self._limit_change(self._previous_value)  # Limit value change if needed
+            self._limit_change()  # Limit value change if needed
             self._emit_if_changed()  # Emit signal if value has changed
         super().focusOutEvent(event)  # Call the base class method
     
@@ -82,11 +86,10 @@ class DebouncedDoubleSpinBox(QDoubleSpinBox):
             steps: The number of steps to change the value.
         """
         self._is_typing = False  # Indicate typing is not in progress
-        old_value = self.value()  # Store the old value
         super().stepBy(steps)  # Call the base class method
-        self._limit_change(old_value)  # Limit the change if needed
+        self._limit_change()  # Limit the change if needed
     
-    def _limit_change(self, old_value: float) -> None:
+    def _limit_change(self) -> None:
         """
         Limits the change in value to the maximum allowed step.
 
@@ -94,9 +97,11 @@ class DebouncedDoubleSpinBox(QDoubleSpinBox):
             old_value: The value before the change.
         """
         if self._max_increase is not None:            
-            change = self.value() - old_value 
+            change = self.value() - self._previous_value
+            print(f"self.value {self.value()}")
+            print(self._previous_value)
             if change > self._max_increase:
-                new_value = old_value + self._max_increase
+                new_value = self._previous_value + self._max_increase
                 print(f"Can't increase more than {self._max_increase} limit.")
                 print(f"Setting value to {new_value}.")
                 self.setValue(new_value)
