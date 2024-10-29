@@ -79,6 +79,7 @@ class InstantaneousControlWidget(QWidget):
 
     def _handle_update_button_clicked(self):
         self.signal_update_mode_changed.emit(True)
+        
         # self._handle_frequency_changed()
         # self._handle_amplitude_changed()
         self.signal_update_mode_changed.emit(False)
