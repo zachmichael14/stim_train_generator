@@ -25,6 +25,7 @@ class DebouncedDoubleSpinBox(QDoubleSpinBox):
         # Previous value is stored to enforce step limitations, if any
         self._is_typing: bool = False
         self._previous_value: float = None
+        self.setMaximum(1000)
         
         self.signal_value_changed.connect(self._handle_value_changed)
 
@@ -96,10 +97,8 @@ class DebouncedDoubleSpinBox(QDoubleSpinBox):
         Args:
             old_value: The value before the change.
         """
-        if self._max_increase is not None:            
+        if self._max_increase is not None:
             change = self.value() - self._previous_value
-            print(f"self.value {self.value()}")
-            print(self._previous_value)
             if change > self._max_increase:
                 new_value = self._previous_value + self._max_increase
                 print(f"Can't increase more than {self._max_increase} limit.")
