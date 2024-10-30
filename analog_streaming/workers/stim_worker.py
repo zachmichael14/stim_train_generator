@@ -1,93 +1,34 @@
-import heapq
-from enum import Enum
 import time
 
-import pandas as pd
-
+from ..utils.precise_timer import PreciseTimer
 from analog_streaming.daq import DAQ
-from ..utils.defaults import StimDefaults
 
-class StimLoopMode(Enum):
-    NO_LOOP = 1
-    LOOP_LAST = 2
-    LOOP_ALL = 3
 
 class StimWorker:
-    def __init__(self) -> None:
+    def __init__(self, manager):
+        self.manager = manager
         self.running = False
         self.daq = DAQ()
-        self.loop_mode = StimLoopMode.LOOP_ALL
-        self.channel = None
-        self.frequency = StimDefaults.FrequencyDefaults.GLOBAL_FREQUENCY
-        self.amplitude = StimDefaults.AmplitudeDefaults.GLOBAL_AMPLITUDE
-        self.scheduled_stim_events = [(0, self.frequency, self.amplitude, (1/self.frequency))]
-        self.uploaded_stims = pd.DataFrame(self.scheduled_stim_events)
+        self.timer = PreciseTimer()
 
     def run(self) -> None:
         self.running = True
-        execution_delay_start_time = time.perf_counter()
-        # timer_offset = 0.00001
-
-        while self.running:
-            if not self.scheduled_stim_events:
-                self._handle_end_of_events()
-                if not self.scheduled_stim_events:
-                    break
-
-            _, _, amplitude, expected_period = self.scheduled_stim_events[0]
-
-            self.daq.set_channel(self.channel)
-            self.daq.set_amplitude(amplitude)
-            self.daq.trigger()
-
-            self._precise_sleep(expected_period - (time.perf_counter() - execution_delay_start_time))
-            
-            heapq.heappop(self.scheduled_stim_events)
-            execution_delay_start_time = time.perf_counter()
-
-    def _precise_sleep(self, duration: float) -> None:
-        end_time = time.perf_counter() + duration
-        while time.perf_counter() < end_time:
-            remaining = end_time - time.perf_counter()
-            if remaining > 0.001:
-                time.sleep(0.0005)
-            else:
-                pass
-
-    def _handle_end_of_events(self) -> None:
-        if self.loop_mode == StimLoopMode.NO_LOOP:
-            return
-        elif self.loop_mode == StimLoopMode.LOOP_LAST:
-            last_stim = self.uploaded_stims.iloc[-1]
-            self._schedule_single_event(last_stim)
-        elif self.loop_mode == StimLoopMode.LOOP_ALL:
-            self._schedule_all_events()
-
-    def _schedule_all_events(self) -> None:
-        for _, row in self.uploaded_stims.iterrows():
-            self._schedule_single_event(row)
-
-    def _schedule_single_event(self, stim_data):
-        timepoint, frequency, amplitude, delay = stim_data
-        heapq.heappush(self.scheduled_stim_events, (timepoint, frequency, amplitude, delay))
-
-    def schedule_events(self, data):
-        self.uploaded_stims = pd.DataFrame(data)
-        self.scheduled_stim_events = []
-        self._schedule_all_events()
-
-    def set_parameters(self, channel=None, frequency=None, amplitude=None):
-        if channel is not None:
-            self.channel = channel
-        if frequency is not None:
-            self.frequency = frequency
-        if amplitude is not None:
-            self.amplitude = amplitude
         
-        self.schedule_events([(self.channel, self.frequency, self.amplitude, 1/self.frequency)])
+        while self.running:
+            event = self.manager.get_next_event()
+            
+            start_time = time.perf_counter()  # Record start time
+            self._execute_stim(event.channel, event.amplitude)
+                
+            # Calculate how long the stimulation took
+            execution_time = time.perf_counter() - start_time
+            sleep_duration = max(0, event.period - execution_time)
+            self.timer.sleep(sleep_duration)
 
-    def set_mode(self, mode: StimLoopMode):
-        self.loop_mode = mode
+    def _execute_stim(self, channel, amplitude):
+        self.daq.set_channel(channel)
+        self.daq.set_amplitude(amplitude)
+        self.daq.trigger()
 
     def stop(self):
         self.running = False
