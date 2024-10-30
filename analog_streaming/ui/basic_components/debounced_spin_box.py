@@ -13,19 +13,26 @@ class DebouncedDoubleSpinBox(QDoubleSpinBox):
     # this signal is emitted instead.
     signal_value_changed = Signal(float)
     
-    def __init__(self, max_increase: float = None) -> None:
+    def __init__(self,
+                 max_increase: float = None,
+                 max_value: float = 1000.0) -> None:
         """
         Initializes the DebouncedDoubleSpinBox.
 
         Args:
-            max_change: The maximum allowed increase from current value.
+            max_change: The maximum allowed increase from current value
+            max_value: The maximum value that can be entered
         """
         super().__init__()
-        self._max_increase: float = max_increase
+
         # Previous value is stored to enforce step limitations, if any
-        self._is_typing: bool = False
         self._previous_value: float = None
-        self.setMaximum(1000)
+        
+        self._max_increase: float = max_increase
+
+        # Keep track of whether user is typing to avoid premature emission
+        self._is_typing: bool = False
+        self.setMaximum(max_value) 
         
         self.signal_value_changed.connect(self._handle_value_changed)
 
@@ -33,38 +40,53 @@ class DebouncedDoubleSpinBox(QDoubleSpinBox):
         """
         Handles key press events.
 
-        Emits valueChanged on Enter key and limits changes on arrow key presses.
+        Emits signal on Enter key or focus change, limiting value if necessary.
+        If the user is typing, wait to emit signal until typing is finished.
         Overrides superclass's keyPressEvent method.
         
         Args:
             event: The key press event.
         """
         key = event.key()
+        # TODO: Is calling super() for keypress event prohibited for enter/return?
+        # If not, why not just call super() at end/beginning
+
+        # User pressed enter, editing is finished
         if key in (Qt.Key_Enter, Qt.Key_Return):
             self._is_typing = False
-
             self._limit_change()
             self._emit_if_changed()
 
+        # User incremented with up/down keyboard keys
         if key in (Qt.Key_Up, Qt.Key_Down):
             self._is_typing = False
             super().keyPressEvent(event)
             self._limit_change()
             self._emit_if_changed()
+    
+        # User is currently entering values manually
         else:
-            # Typing is in progess
             self._is_typing = True
             super().keyPressEvent(event)
 
     def focusInEvent(self, event) -> None:
-        super().focusInEvent(event)
+        """
+        Handle focus in event.
+
+        Retain current value as previous value in case of change.
+        Overrides superclass's focusInEvent method.
+        """
         self._previous_value = self.value()
+        super().focusInEvent(event)
+
 
     def focusOutEvent(self, event) -> None:
         """
         Handles focus out events.
 
-        Emits valueChanged if typing is detected and limits the value change.
+        Emits signal if user switches focus after editing. This method handles
+        situations where the user changes value but clicks away instead of
+        pressing enter.
         Overrides superclass's focusOutEvent method.
 
         Args:
@@ -72,9 +94,9 @@ class DebouncedDoubleSpinBox(QDoubleSpinBox):
         """
         if self._is_typing:
             self._is_typing = False
-            self._limit_change()  # Limit value change if needed
-            self._emit_if_changed()  # Emit signal if value has changed
-        super().focusOutEvent(event)  # Call the base class method
+            self._limit_change()
+            self._emit_if_changed()
+        super().focusOutEvent(event)
     
     def stepBy(self, steps: int) -> None:
         """
@@ -86,43 +108,41 @@ class DebouncedDoubleSpinBox(QDoubleSpinBox):
         Args:
             steps: The number of steps to change the value.
         """
-        self._is_typing = False  # Indicate typing is not in progress
-        super().stepBy(steps)  # Call the base class method
-        self._limit_change()  # Limit the change if needed
+        # TODO: Is resetting is_typing necessary here?
+        self._is_typing = False
+        super().stepBy(steps)
+        self._limit_change()
     
     def _limit_change(self) -> None:
         """
-        Limits the change in value to the maximum allowed step.
+        Limit the change in value to the maximum allowed increment.
 
-        Args:
-            old_value: The value before the change.
+        This method assumed decreases in value are safer/more tolerable than
+        increases, so it only limits increases.
+        
         """
         if self._max_increase is not None:
             change = self.value() - self._previous_value
             if change > self._max_increase:
+                # Set to maximum allowed increment
                 new_value = self._previous_value + self._max_increase
-                print(f"Can't increase more than {self._max_increase} limit.")
-                print(f"Setting value to {new_value}.")
+                print(f"Limited to +{self._max_increase} increases; setting to {new_value}.")
                 self.setValue(new_value)
     
-    def _handle_value_changed(self, value: float) -> None:
+    @Slot()
+    def _handle_value_changed(self) -> None:
         """
         Handles the value changed signal.
 
-        Emits valueChanged only if not in typing mode.
-
-        Args:
-            value: The new value.
+        Emits signal only if user is not currently typing.
         """
+        #TODO: Refactor these event/signal handlers
         if not self._is_typing:
-            self._emit_if_changed()  # Emit the signal if applicable
+            self._emit_if_changed()
     
     def _emit_if_changed(self) -> None:
-        """
-        Emits valueChanged only if the value has actually changed.
-        """
-        current_value = self.value()  # Get the current value
-        if current_value != self._previous_value:  # Check if the value has changed
-            self._previous_value = current_value  # Update the previous value
-            # Emit the default signal from QDoubleSpinBox
-            self.signal_value_changed.emit(current_value)  # Emit the base class signal
+        """Emits signal only if the value has actually changed."""
+        current_value = self.value()
+        if current_value != self._previous_value:
+            self._previous_value = current_value
+            self.signal_value_changed.emit(current_value)
