@@ -9,7 +9,6 @@ class StimWorker:
         self.manager = manager
         self.running = False
         self.daq = DAQ()
-        self.timer = PreciseTimer()
 
     def run(self) -> None:
         self.running = True
@@ -23,7 +22,7 @@ class StimWorker:
             # Calculate how long the stimulation took
             execution_time = time.perf_counter() - start_time
             sleep_duration = max(0, event.period - execution_time)
-            self.timer.sleep(sleep_duration)
+            PreciseTimer.sleep(sleep_duration)
 
     def _execute_stim(self, channel, amplitude):
         self.daq.set_channel(channel)
