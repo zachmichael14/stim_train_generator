@@ -118,12 +118,10 @@ class ElectrodeButton(QPushButton):
 
 class SingleElectrodeWidget(QWidget):
     """
-    Widget displaying a single, non-interactive electrode button.
+    Widget displaying a single electrode button.
     
-    This widget shows a centered, permanently selected electrode button
-    that cannot be toggled by the user because there are no other options
-    in a single electrode configuration.
-    
+    This widget shows a centered, selectable electrode button
+
     Signals:
         signal_electrode_selected: Emitted with channel ID when initialized
     """
@@ -140,8 +138,8 @@ class SingleElectrodeWidget(QWidget):
 
         self.electrode = ElectrodeButton(0, ElectrodeShape.circle)
         self.electrode.setChecked(True)
-        self.electrode.setEnabled(False)
 
+        self.electrode.toggled.connect(self._handle_toggle)
         self._init_ui()
 
     def _init_ui(self):
@@ -153,7 +151,21 @@ class SingleElectrodeWidget(QWidget):
         layout = QGridLayout()        
         layout.addWidget(self.electrode, 0, 0, Qt.AlignCenter)
         self.setLayout(layout)
+
+    @Slot(bool)
+    def _handle_toggle(self, checked: bool):
+        """
+        Handle electrode button toggle events.
         
+        Emits selection signal (0) or deselection flag (-1) conditionally
+        
+        Args:
+            checked: Whether the button was checked or unchecked
+        """
+        if checked:
+            self.signal_electrode_selected.emit(0)
+        else:
+            self.signal_electrode_selected.emit(-1)
 
 class MultiElectrodeWidget(QWidget):
     """
@@ -213,12 +225,16 @@ class MultiElectrodeWidget(QWidget):
         Args:
             checked: Whether the button was checked or unchecked
         """
+        print(f"{self.sender()} is toggling {checked}")
         if checked:
             sender = self.sender()
-            self._unselect_all_but_one(sender)
+            self._deselect_all_but_one(sender)
             self.signal_electrode_selected.emit(sender.channel_id)
-
-    def _unselect_all_but_one(self, selected_button: ElectrodeButton) -> None:
+        elif not self._any_electrodes_checked():
+            # -1 acts as deselection flag
+            self.signal_electrode_selected.emit(-1)
+    
+    def _deselect_all_but_one(self, selected_button: ElectrodeButton) -> None:
         """
         Ensure only one button remains selected.
 
@@ -231,6 +247,18 @@ class MultiElectrodeWidget(QWidget):
             if button is not selected_button:
                 button.setChecked(False)
 
+    def _any_electrodes_checked(self) -> bool:
+        """
+        Determine if any electrode buttons are checked.
+
+        Iterates through all electrode buttons in the widget and checks their
+        state. Returns True if at least one button is checked, otherwise False.
+
+        Returns:
+            bool: True if any electrode is checked; False otherwise
+        """
+        return any(button.isChecked() for button in self.findChildren(ElectrodeButton))
+
 
 class ElectrodeMode(Enum):
     """
@@ -240,8 +268,8 @@ class ElectrodeMode(Enum):
         SINGLE: Mode for single electrode selection
         MULTI: Mode for multiple electrode selection
     """
-    SINGLE = "Single Electrode"
-    MULTI = "Multiple Electrodes"
+    SINGLE = "DS8R - Single Electrode"
+    MULTI = "D188 - Multiple Electrodes"
 
 
 class ElectrodeSelectorWidget(QWidget):
