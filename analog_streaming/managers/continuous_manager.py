@@ -3,9 +3,9 @@ from typing import Optional
 
 from PySide6.QtCore import QObject, Signal
 
-from ..utils.data_classes import RampValues, StimEvent
-from ..utils.defaults import AmplitudeDefaults, FrequencyDefaults
-from ..workers.stim_worker import StimWorker
+from analog_streaming.core.data_classes import RampValues, StimEvent
+from analog_streaming.core.defaults import AmplitudeDefaults, FrequencyDefaults
+from analog_streaming.core.stim_worker import StimWorker
 
 
 class ContinuousStimManager(QObject):

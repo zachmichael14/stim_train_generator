@@ -4,8 +4,7 @@ from typing import Optional
 from PySide6.QtCore import QSize, Signal, Slot
 from PySide6.QtWidgets import QComboBox, QGroupBox, QVBoxLayout, QWidget
 
-from .single_electrode import SingleElectrodeWidget
-from .multi_electrode import MultiElectrodeWidget
+from analog_streaming.ui.composite_widgets import single_electrode, multi_electrode
 
 class ElectrodeMode(Enum):
     """
@@ -40,8 +39,8 @@ class ElectrodeSelectorWidget(QWidget):
         """
         super().__init__(parent)
 
-        self.single_widget = SingleElectrodeWidget()
-        self.multi_widget = MultiElectrodeWidget()
+        self.single_widget = single_electrode.SingleElectrodeWidget()
+        self.multi_widget = multi_electrode.MultiElectrodeWidget()
 
         self._init_ui()
         self._connect_signals()

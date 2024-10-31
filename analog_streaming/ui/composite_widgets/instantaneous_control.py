@@ -6,7 +6,7 @@ from PySide6.QtWidgets import (
     QWidget
 )
 
-from ..basic_components.slide_toggle import SlideToggle
+from analog_streaming.ui.basic_components.slide_toggle import SlideToggle
 
 class InstantaneousControlWidget(QWidget):
     """

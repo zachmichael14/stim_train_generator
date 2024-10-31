@@ -3,9 +3,9 @@ from PySide6.QtWidgets import (
     QGridLayout, QGroupBox, QLabel, QVBoxLayout, QWidget
 )
 
-from .ramp_settings import RampSettingsWidget
-from ..basic_components.debounced_spin_box import DebouncedDoubleSpinBox
-from ...utils.ramp_calculator import RampCalculator
+from analog_streaming.ui.composite_widgets.ramp_settings import RampSettingsWidget
+from analog_streaming.ui.basic_components.debounced_spin_box import DebouncedDoubleSpinBox
+from analog_streaming.utils.ramp_calculator import RampCalculator
 
 class StimParameterWidget(QWidget):
     signal_current_value_changed = Signal(float)

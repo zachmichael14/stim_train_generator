@@ -1,5 +1,4 @@
 from collections import deque
-import csv
 from datetime import datetime
 import json
 from os import path, makedirs
@@ -7,7 +6,6 @@ import socket
 
 from PySide6.QtCore import QObject, Signal
 from PySide6.QtWidgets import QMessageBox
-
 
 class ConfigManager(QObject):
     """
