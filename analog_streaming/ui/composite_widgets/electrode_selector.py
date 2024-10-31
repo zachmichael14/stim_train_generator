@@ -4,8 +4,8 @@ from typing import Optional
 from PySide6.QtCore import QSize, Signal, Slot
 from PySide6.QtWidgets import QGroupBox, QVBoxLayout, QWidget, QComboBox
 
-from ..basic_components.single_electrode import SingleElectrodeWidget
-from ..basic_components.multi_electrode import MultiElectrodeWidget
+from .single_electrode import SingleElectrodeWidget
+from .multi_electrode import MultiElectrodeWidget
 
 
 class ElectrodeMode(Enum):

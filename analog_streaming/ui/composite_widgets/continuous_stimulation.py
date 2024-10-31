@@ -2,8 +2,8 @@ from PySide6.QtWidgets import QWidget, QHBoxLayout
 from PySide6.QtCore import Slot
 
 from .electrode_selector import ElectrodeSelectorWidget
-from ..basic_components.stim_parameters import StimParameterWidget
-from ..basic_components.instantaneous_control import InstantaneousControlWidget
+from .stim_parameters import StimParameterWidget
+from .instantaneous_control import InstantaneousControlWidget
 from analog_streaming.managers.continuous_manager import ContinuousStimManager
 
 from ...utils.defaults import AmplitudeDefaults, FrequencyDefaults
@@ -58,7 +58,6 @@ class ContinuousStimWidget(QWidget):
         self.amplitude_widget.signal_ramp_min_changed.connect(self._handle_amplitude_min_calc)
         self.amplitude_widget.signal_ramp_requested.connect(self._handle_amplitude_ramp_requested)
 
-        
     @Slot(int)
     def _handle_electrode_selected(self, channel: int):
         # -1 is deselection flag. Since no electrode is selected, stop stim
