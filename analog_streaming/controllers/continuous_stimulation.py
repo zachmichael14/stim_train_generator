@@ -4,9 +4,9 @@ from PySide6.QtWidgets import QHBoxLayout, QWidget
 from analog_streaming.managers.continuous_manager import ContinuousStimManager
 from analog_streaming.core.data_classes import StimEvent
 from analog_streaming.core.defaults import AmplitudeDefaults, FrequencyDefaults
-from analog_streaming.ui.composite_widgets.electrode_selector import ElectrodeSelectorWidget
-from analog_streaming.ui.composite_widgets.instantaneous_control import InstantaneousControlWidget
-from analog_streaming.ui.composite_widgets.stim_parameters import StimParameterWidget
+from analog_streaming.widgets.composite_widgets.electrode_selector import ElectrodeSelectorWidget
+from analog_streaming.widgets.composite_widgets.instantaneous_control import InstantaneousControlWidget
+from analog_streaming.widgets.composite_widgets.stim_parameters import StimParameterWidget
 from analog_streaming.utils.ramp_calculator import RampCalculator
 
 class ContinuousStimWidget(QWidget):
@@ -83,6 +83,8 @@ class ContinuousStimWidget(QWidget):
     def _handle_current_frequency_changed(self, new_value: float):
         """Current frequency changed when not ramping."""
         self.stim_manager.set_frequency(frequency=new_value)
+        if self.amplitude_widget.is_ramping():
+            self._update_amplitude_ramps()
 
     @Slot(float)
     def _handle_frequency_ramp_calc(self,
@@ -93,6 +95,9 @@ class ContinuousStimWidget(QWidget):
 
         ramp_values = self.ramp_calculator.generate_all_frequency_ramps(new_value, ramp_values)
         self.stim_manager.frequency_ramp_values = ramp_values
+
+        if self.amplitude_widget.is_ramping():
+            self._update_amplitude_ramps()
     
     @Slot(float, float, float)
     def _handle_frequency_max_calc(self, 
@@ -136,8 +141,14 @@ class ContinuousStimWidget(QWidget):
                                     new_value: float,
                                     ramp_values: dict):
         """Current amplitude changed when ramping."""
-        # ramp_values = self.ramp_calculator.generate_all_ramp_intermediates(new_value, ramp_values)
-        self.stim_manager.amplitude_ramp_values = ramp_values
+        if not self.frequency_widget.is_ramping():
+            current_frequency = self.frequency_widget.get_current_value()
+          
+            ramp_values = self.ramp_calculator.generate_all_amplitude_ramps(
+                new_value,
+                ramp_values,
+                current_frequency)
+            self.stim_manager.amplitude_ramp_values = ramp_values
 
     @Slot(float, float, float)
     def _handle_amplitude_max_calc(self, 
@@ -145,8 +156,13 @@ class ContinuousStimWidget(QWidget):
                                    target_value: float,
                                    duration: float):
         """Only the max ramping intermediates need to be calculated"""
-        # intermediates = self.ramp_calculator.generate_single_ramp_intermediates(duration, current_value, target_value)
-        # self.stim_manager.set_amplitude_ramp_max(intermediates)
+        current_frequency = self.frequency_widget.get_current_value()
+        intermediates = self.ramp_calculator.generate_single_amplitude_ramp(
+            current_value,
+            target_value,
+            duration,
+            current_frequency)
+        self.stim_manager.set_amplitude_ramp_max(intermediates)
 
     @Slot(float, float, float)
     def _handle_amplitude_rest_calc(self, 
@@ -154,22 +170,32 @@ class ContinuousStimWidget(QWidget):
                                    target_value: float,
                                    duration: float):
         """Only the rest ramping intermediates need to be calculated"""
-        # intermediates = self.ramp_calculator.generate_single_ramp_intermediates(duration, current_value, target_value)
-        # self.stim_manager.set_amplitude_ramp_rest(intermediates)
-   
+        current_frequency = self.frequency_widget.get_current_value()
+        intermediates = self.ramp_calculator.generate_single_amplitude_ramp(
+            current_value,
+            target_value,
+            duration,
+            current_frequency)
+        self.stim_manager.set_amplitude_ramp_rest(intermediates)
+
     @Slot(float, float, float)
     def _handle_amplitude_min_calc(self, 
                                    current_value: float,
                                    target_value: float,
                                    duration: float):
         """Only the min ramping intermediates need to be calculated"""
-        # intermediates = self.ramp_calculator.generate_single_ramp_intermediates(duration, current_value, target_value)
-        # self.stim_manager.set_amplitude_ramp_min(intermediates)
-    
+        current_frequency = self.frequency_widget.get_current_value()
+        intermediates = self.ramp_calculator.generate_single_amplitude_ramp(
+            current_value,
+            target_value,
+            duration,
+            current_frequency)
+        self.stim_manager.set_amplitude_ramp_min(intermediates)
+
     @Slot(str)
     def _handle_amplitude_ramp_requested(self, ramp_direction: str):
         print(f"amp ramp requested from current to {ramp_direction}")
-        # self.stim_manager.ramp_amplitude(ramp_direction)
+        self.stim_manager.ramp_amplitude(ramp_direction)
 
     def _update_ui(self, event: StimEvent):
         freq_ramp = self.frequency_widget.is_ramping()
@@ -180,8 +206,18 @@ class ContinuousStimWidget(QWidget):
 
         if freq_ramp:
             self.frequency_widget.parameter_spinbox.setValue(event.frequency)
+            self.stim_manager.set_frequency(event.frequency)
 
         if amp_ramp:
             self.amplitude_widget.parameter_spinbox.setValue(event.amplitude)
+            self.stim_manager.set_amplitude(event.frequency)
 
-        
+    def _update_amplitude_ramps(self):
+        """Recalculate amplitude values when frequency is changed."""
+        current_frequency = self.frequency_widget.get_current_value()
+        current_amplitude = self.amplitude_widget.get_current_value()
+        ramp_values = self.amplitude_widget.get_ramp_values()
+          
+        self.ramp_calculator.generate_all_amplitude_ramps(current_amplitude,
+                                                          ramp_values,current_frequency)
+        self.stim_manager.amplitude_ramp_values = ramp_values

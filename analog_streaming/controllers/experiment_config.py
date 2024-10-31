@@ -133,12 +133,3 @@ class ExperimentConfigWindow(QMainWindow):
                                 "It appears no sensor map has been selected.")
             return None
         self.config_widget.sensor_map = sensor_map
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    manager = ConfigManager()
-    window = ConfigWindow(manager)
-    window.setWindowTitle("Analog Streaming Configuration")
-    window.show()
-
-    sys.exit(app.exec())

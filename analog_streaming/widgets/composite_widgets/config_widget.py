@@ -3,7 +3,7 @@ from PySide6.QtWidgets import (
     QCheckBox, QComboBox, QFormLayout, QLabel, QLineEdit, QPushButton, QVBoxLayout, QWidget
 )
 
-from analog_streaming.ui.basic_components.import_export import ImportExportWidget
+from analog_streaming.widgets.basic_components.import_export import ImportExportWidget
 from analog_streaming.core.defaults import ConfigDefaults
 
 class ConfigWidget(QWidget):

@@ -113,7 +113,6 @@ class ContinuousStimManager(QObject):
     def _stage_new_stim_event(self, clear_previous: bool = True):
         if clear_previous:
             self.staged_events.clear()
-    
         event = StimEvent(
                 self.current_channel, 
                 self.current_frequency,
@@ -169,9 +168,8 @@ class ContinuousStimManager(QObject):
 
     def apply_changes(self) -> None:
         """Applies staged parameter changes under thread lock protection."""
-        with self._lock:
-            if self.staged_events:
-                self.events = self.staged_events.copy()
+        if self.staged_events:
+            self.events = self.staged_events.copy()
 
     def _run(self) -> None:
         """
@@ -220,7 +218,36 @@ class ContinuousStimManager(QObject):
         ]
 
     def ramp_amplitude(self, ramp_direction: str) -> None:
-        print("gonna ramp amplitude")
+        """
+        Creates a series of events to smoothly transition amplitude.
+        
+        Args:
+            ramp_destination: Target of ramp ("max", "rest", or "min")
+        """
+        if not self.amplitude_ramp_values:
+            return
+        
+        print("ramp amplitude called")
+            
+        # Select ramp values based on destination
+        if ramp_direction.casefold() == "max":
+            ramp_values = self.amplitude_ramp_values.current_to_max
+        elif ramp_direction.casefold() == "rest":
+            ramp_values = self.amplitude_ramp_values.current_to_rest
+        else:
+            ramp_values = self.amplitude_ramp_values.current_to_min
+        
+        self.events.clear()
+    
+        # Generate events for each frequency step
+        self.events = [
+            StimEvent(
+                channel=self.current_channel,
+                frequency=self.current_frequency,
+                amplitude=amplitude,
+                period = 1 / self.current_frequency
+            ) for amplitude in ramp_values
+        ]
 
     def set_frequency_ramp_max(self, ramp_values: list):
         if not self.frequency_ramp_values:

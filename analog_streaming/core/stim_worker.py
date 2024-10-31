@@ -26,7 +26,7 @@ class StimWorker:
         """
         self.manager = manager
         self.running = False
-        # self.daq = DAQ()
+        self.daq = DAQ()
 
     def run(self) -> None:
         """
@@ -58,10 +58,9 @@ class StimWorker:
             channel: Channel number for the stimulation.
             amplitude: Amplitude value for the stimulation.
         """
-        # self.daq.set_channel(channel)
-        # self.daq.set_amplitude(amplitude)
-        # self.daq.trigger()
-        pass
+        self.daq.set_channel(channel)
+        self.daq.set_amplitude(amplitude)
+        self.daq.trigger()
 
     def _sleep(self, duration: float) -> None:
         # Turn duration into a time that can be meaningfully compared
@@ -82,4 +81,4 @@ class StimWorker:
         Terminates the main worker loop and sets all channels to zero.
         """
         self.running = False
-        # self.daq.zero_all()
+        self.daq.zero_all()

@@ -3,8 +3,8 @@ from PySide6.QtWidgets import (
     QGridLayout, QGroupBox, QLabel, QVBoxLayout, QWidget
 )
 
-from analog_streaming.ui.composite_widgets.ramp_settings import RampSettingsWidget
-from analog_streaming.ui.basic_components.debounced_spin_box import DebouncedDoubleSpinBox
+from analog_streaming.widgets.composite_widgets.ramp_settings import RampSettingsWidget
+from analog_streaming.widgets.basic_components.debounced_spin_box import DebouncedDoubleSpinBox
 from analog_streaming.utils.ramp_calculator import RampCalculator
 
 class StimParameterWidget(QWidget):
@@ -67,15 +67,11 @@ class StimParameterWidget(QWidget):
 
     @Slot(bool)
     def _handle_ramp_toggled(self, is_toggled: bool):
-        """If it's toggled on, send the calculated ramps
-        Emit None if toggled off
-        """
+        """Send widget ramp values and current value if ramp is toggled on."""
         current_value = self.parameter_spinbox.value()
         if is_toggled:
             ramp_values = self.ramp_widget.get_values()
             self.signal_calculate_ramp_values.emit(current_value, ramp_values)
-        # else:
-            # self.signal_calculate_ramp_values.emit(current_value, None)
 
     @Slot(str)
     def _handle_ramp_requested(self, ramp_direction: str):
@@ -110,3 +106,9 @@ class StimParameterWidget(QWidget):
 
     def is_ramping(self) -> bool:
         return self.ramp_widget.is_ramping()
+    
+    def get_current_value(self) -> float:
+        return self.parameter_spinbox.value()
+
+    def get_ramp_values(self) -> dict:
+        values = self.ramp_widget.get_values()

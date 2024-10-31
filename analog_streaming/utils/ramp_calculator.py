@@ -126,24 +126,60 @@ class RampCalculator:
         new_row = np.array([[new_row_time, frequency_to_add]])
         
         results = np.insert(results, insert_index + 1, new_row, axis=0)
-        results = self._recalculate_time(results)
         
         if len(results) > 0:
             results[-1][1] = end_frequency
             
         return results
 
-    def _recalculate_time(self, arr: np.ndarray) -> np.ndarray:
-        if len(arr) <= 1:
-            return arr
-            
-        for i in range(1, len(arr)):
-            arr[i][0] = arr[i - 1][0] + (1 / arr[i - 1][1])
-        return arr
-
     def _get_linear_function(self, x1: float, x2: float, y1: float, y2: float):
-        if abs(x2 - x1) < self.precision:
-            return lambda x: y2
         slope = (y2 - y1) / (x2 - x1)
         intercept = y1 - slope * x1
         return lambda x: slope * x + intercept
+    
+    def generate_all_amplitude_ramps(self,
+                                     current_amplitude: float,
+                                     amplitude_ramp_parameters: dict,
+                                     current_frequency: float):
+        
+        print(amplitude_ramp_parameters)
+        max_quantity = amplitude_ramp_parameters["to_max_duration"] / (1 / current_frequency)
+        rest_quantity = amplitude_ramp_parameters["to_rest_duration"] / (1 / current_frequency)
+        min_quantity = amplitude_ramp_parameters["to_min_duration"] / (1 / current_frequency)
+          
+        max_intermediates = self.generate_single_amplitude_ramp(
+            current_amplitude,
+            amplitude_ramp_parameters["ramp_max"],
+            max_quantity,
+            current_frequency)
+        rest_intermediates = self.generate_single_amplitude_ramp(
+            current_amplitude,
+            amplitude_ramp_parameters["ramp_rest"],
+            rest_quantity,
+            current_frequency)
+        min_intermediates = self.generate_single_amplitude_ramp(
+            current_amplitude,
+            amplitude_ramp_parameters["ramp_min"],
+            min_quantity,
+            current_frequency)
+
+        return RampValues(
+            current_to_max = max_intermediates,
+            current_to_rest = rest_intermediates,
+            current_to_min = min_intermediates)
+
+    def generate_single_amplitude_ramp(self,
+                                       start_amplitude: float,
+                                       end_amplitude: float,
+                                       duration: float,
+                                       current_frequency: float):
+        quantity_of_intermediates = int(duration / (1 / current_frequency))
+        return np.linspace(start_amplitude,
+                           end_amplitude,
+                           quantity_of_intermediates).tolist()
+
+
+    # Two situations:
+        # -Frequency is ramping, in which case amplitudes just need to be paired with each frequency pulse, so the number of amplitude intermediates is equal to the number of frequency intermediates
+
+        # - Frequency is not ramping, in which case the number of amplitude intermediates must be equal to the number of frequency pulses that occur in the given amplitude ramp duration (number of amplitudes = duration / (1 / frequency))

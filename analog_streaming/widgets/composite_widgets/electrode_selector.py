@@ -4,7 +4,7 @@ from typing import Optional
 from PySide6.QtCore import QSize, Signal, Slot
 from PySide6.QtWidgets import QComboBox, QGroupBox, QVBoxLayout, QWidget
 
-from analog_streaming.ui.composite_widgets import single_electrode, multi_electrode
+from analog_streaming.widgets.composite_widgets import single_electrode, multi_electrode
 
 class ElectrodeMode(Enum):
     """
