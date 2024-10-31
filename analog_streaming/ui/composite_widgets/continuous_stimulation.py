@@ -1,15 +1,14 @@
-from PySide6.QtWidgets import QWidget, QHBoxLayout
 from PySide6.QtCore import Slot
+from PySide6.QtWidgets import QWidget, QHBoxLayout
 
 from .electrode_selector import ElectrodeSelectorWidget
 from .stim_parameters import StimParameterWidget
 from .instantaneous_control import InstantaneousControlWidget
-from analog_streaming.managers.continuous_manager import ContinuousStimManager
 
+from ...managers.continuous_manager import ContinuousStimManager
 from ...utils.defaults import AmplitudeDefaults, FrequencyDefaults
 from ...utils.ramp_calculator import RampCalculator
 from ...utils.data_classes import StimEvent
-
 
 class ContinuousStimWidget(QWidget):
     def __init__(self, continuous_stim_manager: ContinuousStimManager):
