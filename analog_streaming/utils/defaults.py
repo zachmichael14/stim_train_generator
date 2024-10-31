@@ -8,25 +8,33 @@ class ConfigDefaults:
     SAVE_DIR = "No save directory selected"
 
 
-class StimDefaults:
-    """Default values for stimulation"""
-    GLOBAL_MIN_TO_MAX_RAMP_TIME = 120.0
-    GLOBAL_REST_TO_RAMP_TIME = 10.0
-    
-    class FrequencyDefaults:
-        GLOBAL_FREQUENCY = 30.0
-        GLOBAL_MAXIMUM = 500
-        RAMP_MAX = 60.0
-        RAMP_REST = 30.0
-        RAMP_MIN = 1.0
-        MAX_INCREMENT_SIZE = 50.0
-        
+class FrequencyDefaults:
+    """Default frequency parameters for continuous stimulation."""
 
-    class AmplitudeDefaults:
-        GLOBAL_AMPLITUDE = 0.0
-        GLOBAL_MAXIMUM = 1000
-        RAMP_MAX = 1.0
-        RAMP_REST = 0.5
-        RAMP_MIN = 0.0
-        MAX_INCREMENT_SIZE = 15.0
-                                    
+    defaults = {
+            "global_value": 30.0,
+            "global_maximum": 500.0,
+            "ramp_max": 60.0,
+            "ramp_rest": 30.0,
+            "ramp_min": 1.0,
+            "max_increase": 50.0,
+            "to_max_duration": 120.0,
+            "to_rest_duration": 10.0,
+            "to_min_duration": 1.0,
+    }
+
+
+class AmplitudeDefaults:
+    """Default amplitude parameters for continuous stimulation."""
+
+    defaults = {
+            "global_value": 0.0,
+            "global_maximum": 1000.0,
+            "ramp_max": 15,
+            "ramp_rest": 7.5,
+            "ramp_min": 0.0,
+            "max_increase": 15.0,
+            "to_max_duration": 120.0,
+            "to_rest_duration": 10.0,
+            "to_min_duration": 1.0,
+    }
