@@ -103,3 +103,4 @@ class MultiElectrodeWidget(QWidget):
             bool: True if any electrode is checked; False otherwise
         """
         return any(button.isChecked() for button in self.findChildren(ElectrodeButton))
+    
