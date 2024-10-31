@@ -2,7 +2,7 @@ from PySide6.QtWidgets import QWidget, QHBoxLayout
 from PySide6.QtCore import Slot
 
 from ..basic_components.electrode_selector import ElectrodeSelectorWidget
-from ..basic_components.parameter_widget import StimParameterWidget
+from ..basic_components.stim_parameters import StimParameterWidget
 from ..basic_components.instantaneous_control import InstantaneousControlWidget
 from analog_streaming.managers.continuous_manager import ContinuousStimManager
 
