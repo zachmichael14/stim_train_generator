@@ -3,7 +3,7 @@ from typing import Optional
 from PySide6.QtCore import Signal, Slot
 from PySide6.QtWidgets import QGridLayout, QWidget
 
-from .electrode_button import ElectrodeButton, ElectrodeShape
+from ..basic_components.electrode_button import ElectrodeButton, ElectrodeShape
 
 class MultiElectrodeWidget(QWidget):
     """

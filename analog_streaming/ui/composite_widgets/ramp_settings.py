@@ -23,7 +23,7 @@ class RampSettingsWidget(QWidget):
     signal_rest_params_changed = Signal(float, float)
     signal_min_params_changed = Signal(float, float)
 
-    def __init__(self, defaults: dict, unit: str = "mA"):
+    def __init__(self, defaults: dict, unit: str = "Milliamps"):
         """
         Initializes the ParameterRampSettingsWidget with default values.
 
@@ -58,7 +58,7 @@ class RampSettingsWidget(QWidget):
         # Column headers
         ramp_group_box_layout.addWidget(QLabel("Go To"), 0, 0)
         ramp_group_box_layout.addWidget(QLabel(f"{self.unit}"), 0, 1)
-        ramp_group_box_layout.addWidget(QLabel("Duration (s)"), 0, 2)
+        ramp_group_box_layout.addWidget(QLabel("Seconds"), 0, 2)
         
         ramp_group_box_layout.addWidget(self.max_radio, 1, 0)
         ramp_group_box_layout.addWidget(self.ramp_max, 1, 1)
