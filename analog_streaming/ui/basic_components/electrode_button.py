@@ -1,9 +1,9 @@
-from enum import Enum, auto
+from enum import auto, Enum
 from typing import Optional
 
 from PySide6.QtCore import QRect, Qt
 from PySide6.QtGui import QBrush, QPainter, QPen, QColor
-from PySide6.QtWidgets import (QPushButton, QWidget)
+from PySide6.QtWidgets import QPushButton, QWidget
 
 
 class ElectrodeShape(Enum):
