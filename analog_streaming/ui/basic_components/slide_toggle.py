@@ -1,7 +1,8 @@
-from PySide6.QtCore import Qt, QRect, QPropertyAnimation, QEasingCurve, Property, Signal
-from PySide6.QtGui import QPainter, QColor, QPen, QFont
+from PySide6.QtCore import (
+     Property, QEasingCurve, QPropertyAnimation, QRect, Qt, Signal
+)
+from PySide6.QtGui import  QColor, QFont, QPainter, QPen
 from PySide6.QtWidgets import QWidget
-
 
 class SlideToggle(QWidget):
     """
