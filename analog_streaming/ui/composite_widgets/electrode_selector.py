@@ -2,11 +2,10 @@ from enum import Enum
 from typing import Optional
 
 from PySide6.QtCore import QSize, Signal, Slot
-from PySide6.QtWidgets import QGroupBox, QVBoxLayout, QWidget, QComboBox
+from PySide6.QtWidgets import QComboBox, QGroupBox, QVBoxLayout, QWidget
 
 from .single_electrode import SingleElectrodeWidget
 from .multi_electrode import MultiElectrodeWidget
-
 
 class ElectrodeMode(Enum):
     """
@@ -48,7 +47,7 @@ class ElectrodeSelectorWidget(QWidget):
         self._connect_signals()
         
         # Initialize with single electrode mode
-        self.mode_changed(ElectrodeMode.SINGLE.value)
+        self._mode_changed(ElectrodeMode.SINGLE.value)
 
     def _init_ui(self):
         """
@@ -83,10 +82,9 @@ class ElectrodeSelectorWidget(QWidget):
         """
         self.single_widget.signal_electrode_selected.connect(self.signal_electrode_selected.emit)
         self.multi_widget.signal_electrode_selected.connect(self.signal_electrode_selected.emit)
-        self.mode_selector.currentTextChanged.connect(self.mode_changed)
+        self.mode_selector.currentTextChanged.connect(self._mode_changed)
 
-    @Slot(str)
-    def mode_changed(self, mode_text: str):
+    def _mode_changed(self, mode_text: str):
         """
         Updates the electrode layout based on the selected mode.
 
