@@ -1,9 +1,3 @@
-"""
-File: sensorConfirmationManager.py
-Purpose: SensorConfirmationDialog is a helper class that displays detected sensors to the user, allowing them to confirm the sensor configuration. This class is called by the onFileUpload() method of the SensorManager class provided by sensorManager.py.
-
-While this dialog doesn't allow the user to make any changes to the setup (changes currently must be performed by editing the sensor map .csv file), that may be a desirable feature in the future.
-"""
 from PySide6.QtCore import Slot
 from PySide6.QtWidgets import QLabel, QScrollArea, QVBoxLayout, QWidget
 
