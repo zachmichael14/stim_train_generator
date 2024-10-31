@@ -1,6 +1,5 @@
 import time
 
-from ..utils.precise_timer import PreciseTimer
 from analog_streaming.daq import DAQ
 
 
@@ -27,7 +26,7 @@ class StimWorker:
         """
         self.manager = manager
         self.running = False
-        self.daq = DAQ()
+        # self.daq = DAQ()
 
     def run(self) -> None:
         """
@@ -49,7 +48,7 @@ class StimWorker:
             # Calculate and apply remaining sleep duration to respect event period
             execution_time = time.perf_counter() - start_time
             sleep_duration = max(0, event.period - execution_time)
-            PreciseTimer.sleep(sleep_duration)
+            self._sleep(sleep_duration)
 
     def _execute_stim(self, channel: int, amplitude: float) -> None:
         """
@@ -59,9 +58,22 @@ class StimWorker:
             channel: Channel number for the stimulation.
             amplitude: Amplitude value for the stimulation.
         """
-        self.daq.set_channel(channel)
-        self.daq.set_amplitude(amplitude)
-        self.daq.trigger()
+        # self.daq.set_channel(channel)
+        # self.daq.set_amplitude(amplitude)
+        # self.daq.trigger()
+        pass
+
+    def _sleep(duration: float) -> None:
+        # Turn duration into a time that can be meaningfully compared
+        end_time = time.perf_counter() + duration
+
+        while time.perf_counter() < end_time:
+            sleep_remaining = end_time - time.perf_counter()
+            if sleep_remaining > 0.001:
+                time.sleep(0.0005)
+            # Busy wait for the last sub-millisecond 
+            else:
+                pass
 
     def stop(self) -> None:
         """
@@ -70,4 +82,4 @@ class StimWorker:
         Terminates the main worker loop and sets all channels to zero.
         """
         self.running = False
-        self.daq.zero_all()
+        # self.daq.zero_all()
