@@ -8,7 +8,7 @@ from analog_streaming.managers.continuous_manager import ContinuousStimManager
 
 from ...utils.defaults import AmplitudeDefaults, FrequencyDefaults
 from ...utils.ramp_calculator import RampCalculator
-from ...utils.data_classes import RampParameters, StimEvent
+from ...utils.data_classes import StimEvent
 
 
 class ContinuousStimWidget(QWidget):
