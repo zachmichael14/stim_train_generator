@@ -1,4 +1,4 @@
-from PySide6.QtCore import Qt, Signal, Slot
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import QDoubleSpinBox
 
 class DebouncedDoubleSpinBox(QDoubleSpinBox):
@@ -55,7 +55,6 @@ class DebouncedDoubleSpinBox(QDoubleSpinBox):
         if key in (Qt.Key_Enter, Qt.Key_Return, Qt.Key_Up, Qt.Key_Down):
             self._limit_change()
             self._handle_value_changed()
-
 
     def focusInEvent(self, event) -> None:
         """
