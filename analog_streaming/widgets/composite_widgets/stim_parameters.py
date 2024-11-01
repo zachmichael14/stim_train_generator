@@ -1,6 +1,6 @@
 from PySide6.QtCore import Signal, Slot
 from PySide6.QtWidgets import (
-    QGridLayout, QGroupBox, QLabel, QVBoxLayout, QWidget
+    QGridLayout, QGroupBox, QLabel, QVBoxLayout, QWidget, QSizePolicy
 )
 
 from analog_streaming.widgets.composite_widgets.ramp_settings import RampSettingsWidget
@@ -27,6 +27,13 @@ class StimParameterWidget(QWidget):
 
         self.parameter_spinbox = DebouncedDoubleSpinBox(max_increase=defaults["max_increase"])
         self.parameter_spinbox.setValue(defaults["global_value"])
+        self.parameter_spinbox.setFixedWidth(100)
+
+
+        self.step_spinbox = DebouncedDoubleSpinBox(max_value=defaults["max_increase"])
+        self.step_spinbox.setValue(1.0)
+        self.step_spinbox.setSingleStep(0.1)
+        self.step_spinbox.setFixedWidth(100)
 
         self.ramp_widget = RampSettingsWidget(defaults, unit=unit)
         self.ramp_calculator = RampCalculator()
@@ -38,9 +45,13 @@ class StimParameterWidget(QWidget):
     def _init_ui(self):
         group_layout = QGridLayout(self.group_box)
 
-        group_layout.addWidget(QLabel(f"Current value:"), 0, 0)
-        group_layout.addWidget(self.parameter_spinbox, 0, 1)
-        group_layout.addWidget(self.ramp_widget, 1, 0, 1, 2)
+        group_layout.addWidget(QLabel("Current Value"), 0, 0)
+        group_layout.addWidget(QLabel("Step"), 0, 1)
+
+        group_layout.addWidget(self.parameter_spinbox, 1, 0)
+        group_layout.addWidget(self.step_spinbox, 1, 1)
+
+        group_layout.addWidget(self.ramp_widget, 2, 0, 1, 2)
         
         main_layout = QVBoxLayout()
         main_layout.addWidget(self.group_box)
@@ -48,6 +59,8 @@ class StimParameterWidget(QWidget):
 
     def _connect_signals(self):
         self.parameter_spinbox.signal_value_changed.connect(self._handle_current_value_changed)
+        
+        self.step_spinbox.signal_value_changed.connect(self._handle_step_changed)
 
         self.ramp_widget.signal_ramp_toggled.connect(self._handle_ramp_toggled)
         self.ramp_widget.signal_ramp_requested.connect(self._handle_ramp_requested)
@@ -64,6 +77,10 @@ class StimParameterWidget(QWidget):
             self.signal_calculate_ramp_values.emit(value, ramp_values)
         else:     
             self.signal_current_value_changed.emit(value)
+
+    @Slot(float)
+    def _handle_step_changed(self, new_step: float):
+        self.parameter_spinbox.setSingleStep(new_step)
 
     @Slot(bool)
     def _handle_ramp_toggled(self, is_toggled: bool):
