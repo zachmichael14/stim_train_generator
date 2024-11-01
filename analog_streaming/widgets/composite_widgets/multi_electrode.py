@@ -69,7 +69,6 @@ class MultiElectrodeWidget(QWidget):
         Args:
             checked: Whether the button was checked or unchecked
         """
-        print(f"{self.sender()} is toggled {checked}")
         if checked:
             sender = self.sender()
             self._deselect_all_but_one(sender)
