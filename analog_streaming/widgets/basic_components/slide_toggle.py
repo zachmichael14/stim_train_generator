@@ -139,13 +139,14 @@ class SlideToggle(QWidget):
             painter (QPainter): The painter used for drawing the text
         """
         painter.setFont(QFont("Arial", 8))
-        painter.setPen(Qt.white)
 
         if self._is_checked:
+            painter.setPen(Qt.white)
             painter.drawText(QRect(4, 0, 26, self._toggle_height),
                              Qt.AlignCenter,
                              "ON")
         else:
+            painter.setPen(QColor(124,124,124))
             painter.drawText(QRect(30, 0, 26, self._toggle_height),
                              Qt.AlignCenter,
                              "OFF")
