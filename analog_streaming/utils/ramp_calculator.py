@@ -141,8 +141,6 @@ class RampCalculator:
                                      current_amplitude: float,
                                      amplitude_ramp_parameters: dict,
                                      current_frequency: float):
-        
-        print(amplitude_ramp_parameters)
         max_quantity = amplitude_ramp_parameters["to_max_duration"] / (1 / current_frequency)
         rest_quantity = amplitude_ramp_parameters["to_rest_duration"] / (1 / current_frequency)
         min_quantity = amplitude_ramp_parameters["to_min_duration"] / (1 / current_frequency)
