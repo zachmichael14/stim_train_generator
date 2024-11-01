@@ -8,8 +8,8 @@ from PySide6.QtWidgets import (
 
 from analog_streaming.core.defaults import ConfigDefaults
 from analog_streaming.managers.config_manager import ConfigManager
-from analog_streaming.ui.basic_components.sensor_confirmation import SensorVisualizationWidget
-from analog_streaming.ui.composite_widgets.config_widget import ConfigWidget
+from analog_streaming.widgets.basic_components.sensor_confirmation import SensorVisualizationWidget
+from analog_streaming.widgets.composite_widgets.config_widget import ConfigWidget
 
 class ExperimentConfigWindow(QMainWindow):
     """Manages interactions between config widget and config manager."""
