@@ -1,3 +1,5 @@
+from typing import Optional, Dict
+
 from PySide6.QtCore import Signal, Slot
 from PySide6.QtWidgets import (
     QGridLayout, QGroupBox, QLabel, QVBoxLayout, QWidget, QSizePolicy
@@ -8,12 +10,11 @@ from analog_streaming.widgets.basic_components.debounced_spin_box import Debounc
 from analog_streaming.utils.ramp_calculator import RampCalculator
 
 class StimParameterWidget(QWidget):
-    signal_current_value_changed = Signal(float)
-    signal_calculate_ramp_values = Signal(float, dict)
-    
-    signal_ramp_max_changed = Signal(float, float, float)
-    signal_ramp_rest_changed = Signal(float, float, float)
-    signal_ramp_min_changed = Signal(float, float, float)
+    # current value, ramp values
+    signal_current_value_changed = Signal(float, dict)
+
+    # ramp_param, current_value, target_value, duration
+    signal_ramp_params_changed = Signal(str, float, float, float)
 
     signal_ramp_requested = Signal(str)
 
@@ -65,18 +66,27 @@ class StimParameterWidget(QWidget):
         self.ramp_widget.signal_ramp_toggled.connect(self._handle_ramp_toggled)
         self.ramp_widget.signal_ramp_requested.connect(self._handle_ramp_requested)
 
-        self.ramp_widget.signal_max_params_changed.connect(self._handle_max_params_changed)
-        self.ramp_widget.signal_rest_params_changed.connect(self._handle_rest_params_changed)
-        self.ramp_widget.signal_min_params_changed.connect(self._handle_min_params_changed)
+        self.ramp_widget.signal_ramp_params_changed.connect(self._handle_ramp_params_changed)
 
     @Slot(float)
     def _handle_current_value_changed(self, value: float):
         """If ramping, signal new for new intermediate calculation."""
         if self.ramp_widget.is_enabled():
             ramp_values = self.ramp_widget.get_values()
-            self.signal_calculate_ramp_values.emit(value, ramp_values)
-        else:     
-            self.signal_current_value_changed.emit(value)
+            self.signal_current_value_changed.emit(value, ramp_values)
+        else:
+            self.signal_current_value_changed.emit(value, None)
+
+    @Slot(str, float, float)
+    def _handle_ramp_params_changed(self,
+                                    ramp_param: str,
+                                    ramp_target_value: float,
+                                    ramp_duration: float):
+        current_value = self.parameter_spinbox.value()
+        self.signal_ramp_params_changed.emit(ramp_param,
+                                             current_value,
+                                             ramp_target_value,
+                                             ramp_duration)
 
     @Slot(float)
     def _handle_step_changed(self, new_step: float):
@@ -88,39 +98,17 @@ class StimParameterWidget(QWidget):
         current_value = self.parameter_spinbox.value()
         if is_toggled:
             ramp_values = self.ramp_widget.get_values()
-            self.signal_calculate_ramp_values.emit(current_value, ramp_values)
+            self.signal_current_value_changed.emit(current_value, ramp_values)
+        else:
+            self.signal_current_value_changed.emit(current_value, None)
 
     @Slot(str)
     def _handle_ramp_requested(self, ramp_direction: str):
         self.signal_ramp_requested.emit(ramp_direction)
 
-    @Slot(float, float)
-    def _handle_max_params_changed(self,
-                                   target_value: float,
-                                   duration: float):
-        current_value = self.parameter_spinbox.value()
-        self.signal_ramp_max_changed.emit(current_value,
-                                          target_value,
-                                          duration)
-
-    @Slot(float, float)
-    def _handle_rest_params_changed(self,
-                                    target_value: float,
-                                    duration: float):
-        current_value = self.parameter_spinbox.value()
-        self.signal_ramp_rest_changed.emit(current_value,
-                                           target_value,
-                                           duration)
-
-    @Slot(float, float)
-    def _handle_min_params_changed(self,
-                                   target_value: float,
-                                   duration: float):
-        current_value = self.parameter_spinbox.value()
-        self.signal_ramp_min_changed.emit(current_value,
-                                          target_value,
-                                          duration)
-
+    def is_enabled(self) -> bool:
+        return self.ramp_widget.is_enabled()
+    
     def is_ramping(self) -> bool:
         return self.ramp_widget.is_ramping()
     
@@ -129,3 +117,4 @@ class StimParameterWidget(QWidget):
 
     def get_ramp_values(self) -> dict:
         values = self.ramp_widget.get_values()
+        return values

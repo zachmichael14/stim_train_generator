@@ -19,9 +19,7 @@ class RampSettingsWidget(QWidget):
     
     signal_ramp_toggled = Signal(bool)
     signal_ramp_requested = Signal(str)
-    signal_max_params_changed = Signal(float, float)
-    signal_rest_params_changed = Signal(float, float)
-    signal_min_params_changed = Signal(float, float)
+    signal_ramp_params_changed = Signal(str, float, float)
 
     def __init__(self, defaults: dict, unit: str = "Milliamps"):
         """
@@ -140,7 +138,6 @@ class RampSettingsWidget(QWidget):
         if is_toggled:
             self.signal_ramp_requested.emit(self.sender().text().casefold()) 
     
-    @Slot(float, float)
     def _handle_max_params_changed(self) -> None:
         """
         Handles changes in max ramp parameters.
@@ -149,9 +146,8 @@ class RampSettingsWidget(QWidget):
         """
         ramp_value = self.ramp_max.value()
         duration = self.to_max_duration.value()
-        self.signal_max_params_changed.emit(ramp_value, duration)
-
-    @Slot(float, float)
+        self.signal_ramp_params_changed.emit("max", ramp_value, duration)
+    
     def _handle_rest_params_changed(self) -> None:
         """
         Handles changes in rest ramp parameters.
@@ -160,9 +156,8 @@ class RampSettingsWidget(QWidget):
         """
         ramp_value = self.ramp_rest.value()
         duration = self.to_rest_duration.value()
-        self.signal_rest_params_changed.emit(ramp_value, duration)
+        self.signal_ramp_params_changed.emit("rest", ramp_value, duration)
 
-    @Slot(float, float)
     def _handle_min_params_changed(self) -> None:
         """
         Handles changes in min ramp parameters.
@@ -171,13 +166,14 @@ class RampSettingsWidget(QWidget):
         """
         ramp_value = self.ramp_min.value()
         duration = self.to_min_duration.value()
-        self.signal_min_params_changed.emit(ramp_value, duration)
+        self.signal_ramp_params_changed.emit("min", ramp_value, duration)
 
     def is_enabled(self) -> None:
         """Returns whether or not ramping is enabled."""
         return self.ramp_group_box.isChecked()
     
     def is_ramping(self) -> bool:
+        """Return True if any ramp radio button is currently selected."""
         return any([self.max_radio.isChecked(),
                     self.rest_radio.isChecked(),
                     self.min_radio.isChecked()])

@@ -43,18 +43,27 @@ class ContinuousStimWidget(QWidget):
         self.instantaneous_widget.signal_update_mode_changed.connect(self._handle_update_mode_changed)
 
         self.frequency_widget.signal_current_value_changed.connect(self._handle_current_frequency_changed)
-        self.frequency_widget.signal_calculate_ramp_values.connect(self._handle_frequency_ramp_calc)
-        self.frequency_widget.signal_ramp_max_changed.connect(self._handle_frequency_max_calc)
-        self.frequency_widget.signal_ramp_rest_changed.connect(self._handle_frequency_rest_calc)
-        self.frequency_widget.signal_ramp_min_changed.connect(self._handle_frequency_min_calc)
+        self.frequency_widget.signal_ramp_params_changed.connect(self._handle_frequency_ramp_params_changed)
         self.frequency_widget.signal_ramp_requested.connect(self._handle_frequency_ramp_requested)
 
         self.amplitude_widget.signal_current_value_changed.connect(self._handle_current_amplitude_changed)
-        self.amplitude_widget.signal_calculate_ramp_values.connect(self._handle_amplitude_ramp_calc)
-        self.amplitude_widget.signal_ramp_max_changed.connect(self._handle_amplitude_max_calc)
-        self.amplitude_widget.signal_ramp_rest_changed.connect(self._handle_amplitude_rest_calc)
-        self.amplitude_widget.signal_ramp_min_changed.connect(self._handle_amplitude_min_calc)
+        self.amplitude_widget.signal_ramp_params_changed.connect(self._handle_amplitude_ramp_params_changed)
         self.amplitude_widget.signal_ramp_requested.connect(self._handle_amplitude_ramp_requested)
+
+    def _update_ui(self, event: StimEvent):
+        freq_ramp = self.frequency_widget.is_ramping()
+        amp_ramp =  self.amplitude_widget.is_ramping()
+
+        self.frequency_widget.parameter_spinbox.setReadOnly(freq_ramp)
+        self.amplitude_widget.parameter_spinbox.setReadOnly(amp_ramp)
+
+        if freq_ramp:
+            self.frequency_widget.parameter_spinbox.setValue(event.frequency)
+            self.stim_manager.set_frequency(event.frequency)
+
+        if amp_ramp:
+            self.amplitude_widget.parameter_spinbox.setValue(event.amplitude)
+            self.stim_manager.set_amplitude(event.frequency)
 
     @Slot(int)
     def _handle_electrode_selected(self, channel: int):
@@ -79,52 +88,30 @@ class ContinuousStimWidget(QWidget):
         # default option (i.e., live updates).
         self.stim_manager.set_update_mode(are_updates_live=are_updates_live)
 
-    @Slot(float)
-    def _handle_current_frequency_changed(self, new_value: float):
+    @Slot(float, dict)
+    def _handle_current_frequency_changed(self,
+                                          new_value: float,
+                                          ramp_values: dict = None):
         """Current frequency changed when not ramping."""
-        self.stim_manager.set_frequency(frequency=new_value)
-        if self.amplitude_widget.is_ramping():
-            self._update_amplitude_ramps()
+        if ramp_values:
+            self._update_all_frequency_ramps(new_value, ramp_values)
+        else:
+            print("no ramp values, just change frequency")
+        # Amplitude is only dependent on current frequency
+        # So recalculate when current value changes        
+        if self.amplitude_widget.is_enabled():
+            self._update_all_amplitude_ramps()
 
-    @Slot(float)
-    def _handle_frequency_ramp_calc(self,
-                                    new_value: float,
-                                    ramp_values: dict):
-        """Current frequency changed when ramping."""
-        self.stim_manager.set_frequency(frequency=new_value)
+    @Slot(str, float, float, float)
+    def _handle_frequency_ramp_params_changed(self,
+                                              ramp_param: str,
+                                              current_value: float,
+                                              ramp_target_value: float,
+                                              ramp_duration: float):
+        intermediates = self.ramp_calculator.generate_single_frequency_ramp(ramp_duration, current_value, ramp_target_value)
+        print(f"Parameter {ramp_param} changed for frequency")
 
-        ramp_values = self.ramp_calculator.generate_all_frequency_ramps(new_value, ramp_values)
-        self.stim_manager.frequency_ramp_values = ramp_values
-
-        if self.amplitude_widget.is_ramping():
-            self._update_amplitude_ramps()
-    
-    @Slot(float, float, float)
-    def _handle_frequency_max_calc(self, 
-                                   current_value: float,
-                                   target_value: float,
-                                   duration: float):
-        """Only the max ramping intermediates need to be calculated"""
-        intermediates = self.ramp_calculator.generate_single_frequency_ramp(duration, current_value, target_value)
-        self.stim_manager.set_frequency_ramp_max(intermediates)
-
-    @Slot(float, float, float)
-    def _handle_frequency_rest_calc(self, 
-                                   current_value: float,
-                                   target_value: float,
-                                   duration: float):
-        """Only the rest ramping intermediates need to be calculated"""
-        intermediates = self.ramp_calculator.generate_single_frequency_ramp(duration, current_value, target_value)
-        self.stim_manager.set_frequency_ramp_rest(intermediates)
-   
-    @Slot(float, float, float)
-    def _handle_frequency_min_calc(self, 
-                                   current_value: float,
-                                   target_value: float,
-                                   duration: float):
-        """Only the min ramping intermediates need to be calculated"""
-        intermediates = self.ramp_calculator.generate_single_frequency_ramp(duration, current_value, target_value)
-        self.stim_manager.set_frequency_ramp_min(intermediates)
+        # self.stim_manager.set_frequency_ramp_max(intermediates)
 
     @Slot(str)
     def _handle_frequency_ramp_requested(self, ramp_direction: str):
@@ -132,92 +119,63 @@ class ContinuousStimWidget(QWidget):
         self.stim_manager.ramp_frequency(ramp_direction)
 
     @Slot(float)
-    def _handle_current_amplitude_changed(self, new_value: float):
+    def _update_all_frequency_ramps(self,
+                                new_value: float,
+                                ramp_values: dict):
+        """Current frequency changed when ramping."""
+
+        print("Frequecy is ramping, calculate all ramp")
+        # self.stim_manager.set_frequency(frequency=new_value)
+
+        # ramp_values = self.ramp_calculator.generate_all_frequency_ramps(new_value, ramp_values)
+        # self.stim_manager.frequency_ramp_values = ramp_values
+
+        # if self.amplitude_widget.is_ramping():
+        #     self._update_amplitude_ramps()
+
+    @Slot(float, dict)
+    def _handle_current_amplitude_changed(self,
+                                          new_value: float,
+                                          ramp_values: dict):
         """Current amplitude changed when not ramping."""
-        self.stim_manager.set_amplitude(amplitude=new_value)
+        if ramp_values:
+            self._update_all_amplitude_ramps()
+        else:
+            print("no ramp values, just change amplitude")
 
-    @Slot(float)
-    def _handle_amplitude_ramp_calc(self,
-                                    new_value: float,
-                                    ramp_values: dict):
-        """Current amplitude changed when ramping."""
-        if not self.frequency_widget.is_ramping():
-            current_frequency = self.frequency_widget.get_current_value()
-          
-            ramp_values = self.ramp_calculator.generate_all_amplitude_ramps(
-                new_value,
-                ramp_values,
-                current_frequency)
-            self.stim_manager.amplitude_ramp_values = ramp_values
-
-    @Slot(float, float, float)
-    def _handle_amplitude_max_calc(self, 
-                                   current_value: float,
-                                   target_value: float,
-                                   duration: float):
+    @Slot(str, float, float, float)
+    def _handle_amplitude_ramp_params_changed(self,
+                                              ramp_param: str,
+                                              current_value: float,
+                                              target_value: float,
+                                              duration: float):
         """Only the max ramping intermediates need to be calculated"""
-        current_frequency = self.frequency_widget.get_current_value()
-        intermediates = self.ramp_calculator.generate_single_amplitude_ramp(
-            current_value,
-            target_value,
-            duration,
-            current_frequency)
-        self.stim_manager.set_amplitude_ramp_max(intermediates)
+        current_amplitude = self.amplitude_widget.get_current_value()
+        # intermediates = self.ramp_calculator.generate_single_amplitude_ramp(
+        #     current_value,
+        #     target_value,
+        #     duration,
+        #     current_)
+        print(f"Parameter {ramp_param} changed for ampltidue")
+        # self.stim_manager.set_amplitude_ramp_max(intermediates)
 
-    @Slot(float, float, float)
-    def _handle_amplitude_rest_calc(self, 
-                                   current_value: float,
-                                   target_value: float,
-                                   duration: float):
-        """Only the rest ramping intermediates need to be calculated"""
-        current_frequency = self.frequency_widget.get_current_value()
-        intermediates = self.ramp_calculator.generate_single_amplitude_ramp(
-            current_value,
-            target_value,
-            duration,
-            current_frequency)
-        self.stim_manager.set_amplitude_ramp_rest(intermediates)
+    def _update_all_amplitude_ramps(self):
+        """Recalculate amplitude values when frequency is changed.
+        
+        This method gets values directly from widgets rather than from signals because it's also called when frequency changes and those values aren't emitted.
+        """
+        print("amplitude is ramping  calculate all")
 
-    @Slot(float, float, float)
-    def _handle_amplitude_min_calc(self, 
-                                   current_value: float,
-                                   target_value: float,
-                                   duration: float):
-        """Only the min ramping intermediates need to be calculated"""
-        current_frequency = self.frequency_widget.get_current_value()
-        intermediates = self.ramp_calculator.generate_single_amplitude_ramp(
-            current_value,
-            target_value,
-            duration,
-            current_frequency)
-        self.stim_manager.set_amplitude_ramp_min(intermediates)
-
-    @Slot(str)
-    def _handle_amplitude_ramp_requested(self, ramp_direction: str):
-        print(f"amp ramp requested from current to {ramp_direction}")
-        self.stim_manager.ramp_amplitude(ramp_direction)
-
-    def _update_ui(self, event: StimEvent):
-        freq_ramp = self.frequency_widget.is_ramping()
-        amp_ramp =  self.amplitude_widget.is_ramping()
-
-        self.frequency_widget.parameter_spinbox.setReadOnly(freq_ramp)
-        self.amplitude_widget.parameter_spinbox.setReadOnly(amp_ramp)
-
-        if freq_ramp:
-            self.frequency_widget.parameter_spinbox.setValue(event.frequency)
-            self.stim_manager.set_frequency(event.frequency)
-
-        if amp_ramp:
-            self.amplitude_widget.parameter_spinbox.setValue(event.amplitude)
-            self.stim_manager.set_amplitude(event.frequency)
-
-    def _update_amplitude_ramps(self):
-        """Recalculate amplitude values when frequency is changed."""
         current_frequency = self.frequency_widget.get_current_value()
         current_amplitude = self.amplitude_widget.get_current_value()
         ramp_values = self.amplitude_widget.get_ramp_values()
           
         self.ramp_calculator.generate_all_amplitude_ramps(current_amplitude,
                                                           ramp_values,current_frequency)
-        self.stim_manager.amplitude_ramp_values = ramp_values
+        # self.stim_manager.amplitude_ramp_values = ramp_values
+
+
+    @Slot(str)
+    def _handle_amplitude_ramp_requested(self, ramp_direction: str):
+        """Frequency ramp requested from current to ramp_direction"""
+        self.stim_manager.ramp_amplitude(ramp_direction)

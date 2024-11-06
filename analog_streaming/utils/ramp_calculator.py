@@ -115,9 +115,11 @@ class RampCalculator:
             return self._handle_last_timepoint(results, end_time, start_frequency, end_frequency)
             
         if frequency_to_add < frequency_floor:
+            print(frequency_floor)
+            print(frequency_to_add)
+            print(time_remaining)
             print(f"Ramp Calculator says: 'Frequency to add is less than frequency floor. That's worth investigating...'")
-            return results
-            
+            return results            
         insert_index = np.searchsorted(results[:, 1], frequency_to_add)
         if insert_index >= len(results):
             insert_index = len(results) - 1
