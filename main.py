@@ -8,7 +8,7 @@ from analog_streaming.managers.continuous_manager import ContinuousStimManager
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     QApplication.setStyle(QStyleFactory.create("Fusion"))
-
+    
     continuous_stim_manager = ContinuousStimManager()
     main_window = ContinuousStimWidget(continuous_stim_manager)
 
