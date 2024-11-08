@@ -26,7 +26,7 @@ class StimWorker:
         """
         self.manager = manager
         self.running = False
-        # self.daq = DAQ()
+        self.daq = DAQ()
 
     def run(self) -> None:
         """
@@ -43,7 +43,7 @@ class StimWorker:
             start_time = time.perf_counter()  # Record start time of stimulation
 
             # Execute stimulation based on event parameters
-            # self._execute_stim(event.channel, event.amplitude)
+            self._execute_stim(event.channel, event.amplitude)
                 
             # Calculate and apply remaining sleep duration to respect event period
             execution_time = time.perf_counter() - start_time
@@ -81,4 +81,4 @@ class StimWorker:
         Terminates the main worker loop and sets all channels to zero.
         """
         self.running = False
-        # self.daq.zero_all()
+        self.daq.zero_all()

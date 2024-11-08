@@ -58,4 +58,3 @@ class SingleElectrodeWidget(QWidget):
 
     def set_defaults(self):
         self.electrode.setChecked(True)
-        self.signal_electrode_selected.emit(0)

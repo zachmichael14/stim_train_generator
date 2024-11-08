@@ -3,9 +3,9 @@ from typing import List
 
 @dataclass
 class RampValues:
-    current_to_max: List[float]
-    current_to_rest: List[float]
-    current_to_min: List[float]
+    max: List[float]
+    rest: List[float]
+    min: List[float]
 
 
 @dataclass

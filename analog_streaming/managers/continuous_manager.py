@@ -1,5 +1,5 @@
 import threading
-from typing import Optional
+from typing import Optional, List
 
 from PySide6.QtCore import QObject, Signal
 
@@ -16,6 +16,8 @@ class ContinuousStimManager(QObject):
     with support for live updates and frequency ramping.
     """
     signal_event_updated = Signal(StimEvent)
+    signal_last_ramp_event = Signal(StimEvent)
+
 
     def __init__(self) -> None:
         """
@@ -77,15 +79,19 @@ class ContinuousStimManager(QObject):
         Returns:
             The next stimulation event to process.
         """
+        
         # For single events, reuse the same event for continuous stim
-        if len(self.events) == 1:
+        if len(self.events) == 2:
+            stim_event = self.events.pop(0)
+            self.signal_last_ramp_event.emit(self.events[0])
+            self.signal_event_updated.emit(self.events[0])
+
+        elif len(self.events) == 1:
             stim_event = self.events[0]
         else:
             stim_event = self.events.pop(0)
-        
-        # Notify UI to update with new event values
-        # This is emitted when the thread worker calls this method
-        self.signal_event_updated.emit(stim_event)
+            self.signal_event_updated.emit(stim_event)
+        print(stim_event)
         return stim_event
     
     def set_channel(self, channel: int):
@@ -121,38 +127,6 @@ class ContinuousStimManager(QObject):
         )
         self.staged_events.append(event)
 
-
-    # def set_parameters(self,
-    #                   channel: Optional[int] = None,
-    #                   frequency: Optional[float] = None,
-    #                   amplitude: Optional[float] = None) -> None:
-    #     """
-    #     Updates stimulation parameters and prepares new events.
-        
-    #     Only provided parameters are updated. Changes are staged and
-    #     applied based on the update mode.
-    #     """
-    #     with self._lock:
-    #         if channel is not None:
-    #             self.current_channel = channel
-    #         if frequency is not None:
-    #             self.current_frequency = frequency
-    #         if amplitude is not None:
-    #             self.current_amplitude = amplitude
-
-    #         self._parameters_changed = True
-    #         self.staged_events.clear()
-    #         event = StimEvent(
-    #             self.current_channel, 
-    #             self.current_frequency,
-    #             self.current_amplitude,
-    #             1/self.current_frequency
-    #         )
-    #         self.staged_events.append(event)
-
-    #     if self.are_updates_live:
-    #         self.apply_changes()
-
     def set_update_mode(self, are_updates_live: bool) -> None:
         """
         Configures whether parameter changes are applied immediately.
@@ -179,13 +153,11 @@ class ContinuousStimManager(QObject):
         """
         while self._running:
             if self._parameters_changed:
-                print("paremetes changed")
                 self.apply_changes()
                 self._parameters_changed = False
-
             self.worker.run()
 
-    def ramp_frequency(self, ramp_direction: str) -> None:
+    def ramp_frequency_from_direction(self, ramp_direction: str) -> None:
         """
         Creates a series of events to smoothly transition frequency.
         
@@ -195,29 +167,16 @@ class ContinuousStimManager(QObject):
         if not self.frequency_ramp_values:
             return
         
-        print("ramp frequency called")
-            
-        # Select ramp values based on destination
-        if ramp_direction.casefold() == "max":
-            ramp_values = self.frequency_ramp_values.current_to_max
-        elif ramp_direction.casefold() == "rest":
-            ramp_values = self.frequency_ramp_values.current_to_rest
-        else:
-            ramp_values = self.frequency_ramp_values.current_to_min
+        if ramp_direction in ["max", "rest", "min"]:
+            ramp_values = getattr(self.frequency_ramp_values, ramp_direction)
+            self.ramp_frequency_from_values(ramp_values)
         
+    def ramp_frequency_from_values(self, ramp_values: List[float]):
         self.events.clear()
-    
-        # Generate events for each frequency step
-        self.events = [
-            StimEvent(
-                channel=self.current_channel,
-                frequency=freq,
-                amplitude=self.current_amplitude,
-                period=1 / freq
-            ) for freq in ramp_values
-        ]
+        events = self.make_frequency_events_from_values(ramp_values)
+        self.events = events.copy()
 
-    def ramp_amplitude(self, ramp_direction: str) -> None:
+    def ramp_amplitude_from_direction(self, ramp_direction: str) -> None:
         """
         Creates a series of events to smoothly transition amplitude.
         
@@ -225,65 +184,35 @@ class ContinuousStimManager(QObject):
             ramp_destination: Target of ramp ("max", "rest", or "min")
         """
         if not self.amplitude_ramp_values:
-            return
+            return        
         
-        print("ramp amplitude called")
-            
-        # Select ramp values based on destination
-        if ramp_direction.casefold() == "max":
-            ramp_values = self.amplitude_ramp_values.current_to_max
-        elif ramp_direction.casefold() == "rest":
-            ramp_values = self.amplitude_ramp_values.current_to_rest
-        else:
-            ramp_values = self.amplitude_ramp_values.current_to_min
-        
+        if ramp_direction in ["max", "rest", "min"]:
+            ramp_values = getattr(self.amplitude_ramp_values, ramp_direction)
+            self.ramp_amplitude_from_values(ramp_values)
+
+    def ramp_amplitude_from_values(self, ramp_values: List[float]):
         self.events.clear()
+        events = self.make_amplitude_events_from_values(ramp_values)
+        self.events = events
     
-        # Generate events for each frequency step
-        self.events = [
+    def make_amplitude_events_from_values(self, values: List[float]):
+        events = [
             StimEvent(
                 channel=self.current_channel,
                 frequency=self.current_frequency,
                 amplitude=amplitude,
                 period = 1 / self.current_frequency
-            ) for amplitude in ramp_values
+            ) for amplitude in values
         ]
-
-    def set_frequency_ramp_max(self, ramp_values: list):
-        if not self.frequency_ramp_values:
-            print("No frequency ramp values.")
-            return
-        self.frequency_ramp_values.current_to_max = ramp_values
-
-    def set_frequency_ramp_rest(self, ramp_values: list):
-        if not self.frequency_ramp_values:
-            print("No frequency ramp values.")
-            return
-        self.frequency_ramp_values.current_to_rest = ramp_values
+        return events
     
-    def set_frequency_ramp_min(self, ramp_values: list):
-        if not self.frequency_ramp_values:
-            print("No frequency ramp values.")
-            return
-        self.frequency_ramp_values.current_to_min = ramp_values
-    
-    def set_amplitude_ramp_max(self, ramp_values: list):
-        if not self.amplitude_ramp_values:
-            print("No amplitude ramp values.")
-            return
-        self.amplitude_ramp_values.current_to_max = ramp_values
- 
-    def set_amplitude_ramp_rest(self, ramp_values: list):
-        if not self.amplitude_ramp_values:
-            print("No amplitude ramp values.")
-            return
-        self.amplitude_ramp_values.current_to_rest = ramp_values
-
-    def set_amplitude_ramp_min(self, ramp_values: list):
-        if not self.amplitude_ramp_values:
-            print("No amplitude ramp values.")
-            return
-        self.amplitude_ramp_values.current_to_min = ramp_values
-
-
-
+    def make_frequency_events_from_values(self, values: List[float]):
+        events = [
+            StimEvent(
+                channel=self.current_channel,
+                frequency=frequency,
+                amplitude=self.current_amplitude,
+                period = 1 / frequency
+            ) for frequency in values
+        ]
+        return events       

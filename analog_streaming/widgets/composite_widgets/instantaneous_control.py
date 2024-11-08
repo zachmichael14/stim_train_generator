@@ -7,6 +7,7 @@ from PySide6.QtWidgets import (
 )
 
 from analog_streaming.widgets.basic_components.slide_toggle import SlideToggle
+from analog_streaming.widgets.basic_components.debounced_spin_box import DebouncedDoubleSpinBox
 
 class InstantaneousControlWidget(QWidget):
     """
@@ -24,6 +25,7 @@ class InstantaneousControlWidget(QWidget):
     signal_on_off_changed = Signal(bool)
     signal_pause_toggled = Signal(bool)
     signal_update_mode_changed = Signal(bool)
+    signal_update_button_clicked = Signal(float)
 
     def __init__(self, parent: Optional[QWidget] = None):
         """
@@ -37,8 +39,9 @@ class InstantaneousControlWidget(QWidget):
         self.onoff_button = SlideToggle()
         self.pause_button = QToolButton()
 
-        self.live_update_toggle = SlideToggle()        
+        self.live_update_toggle = SlideToggle()
         self.send_update_button = QPushButton("Send Update(s)")
+        self.ramp_duration_spinbox = DebouncedDoubleSpinBox()
 
         self._setup_ui()
         self._set_widget_settings()
@@ -48,15 +51,20 @@ class InstantaneousControlWidget(QWidget):
         """Set up the user interface layout and components."""
         form_layout = QFormLayout()
 
-        form_layout.addRow("Stimulation:", self.onoff_button)
+        form_layout.addRow("Stimulation:",
+                           self.onoff_button)
         form_layout.addRow(self.pause_button)
 
         # Blank rows for spacing
         form_layout.addRow(QLabel(""))  
         form_layout.addRow(QLabel(""))  
 
-        form_layout.addRow("Live Update:", self.live_update_toggle)
+        form_layout.addRow("Live Update:",
+                           self.live_update_toggle)
         form_layout.addRow(self.send_update_button)
+        form_layout.addRow("Ramp Update Duration (s):",
+                           self.ramp_duration_spinbox)
+
 
         group_box = QGroupBox("Instantaneous Control")
         group_box.setLayout(form_layout)
@@ -81,6 +89,7 @@ class InstantaneousControlWidget(QWidget):
         self.live_update_toggle.signal_toggled.connect(self._handle_update_mode_changed)
         self.send_update_button.clicked.connect(self._handle_update_button_clicked)
         self.pause_button.clicked.connect(self._handle_pause_button_clicked)
+        # self.ramp_duration_spinbox.signal_value_changed.connect(self.signal_ramp_duration_changed.emit)
 
     @Slot(bool)
     def _handle_on_off_toggle(self, is_on: bool) -> None:
@@ -114,9 +123,8 @@ class InstantaneousControlWidget(QWidget):
         
         Emits update mode change signals to toggle the state.
         """
-        self.signal_update_mode_changed.emit(True)
-        self.signal_update_mode_changed.emit(False)
-
+        self.signal_update_button_clicked.emit(self.ramp_duration_spinbox.value())
+        
     @Slot(bool)
     def _handle_update_mode_changed(self, are_updates_live: bool) -> None:
         """
@@ -131,3 +139,7 @@ class InstantaneousControlWidget(QWidget):
         self.send_update_button.setText(
             "Updates Are Live" if are_updates_live else "Send Update(s)"
         )
+
+    def is_on(self) -> bool:
+        return self.onoff_button.is_checked()
+    

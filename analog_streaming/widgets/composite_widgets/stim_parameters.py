@@ -18,6 +18,8 @@ class StimParameterWidget(QWidget):
 
     signal_ramp_requested = Signal(str)
 
+    signal_check_radio_state = Signal()
+
     def __init__(self,
                  defaults: dict[str, float],
                  parameter: str = "Amplitude", 
@@ -72,6 +74,8 @@ class StimParameterWidget(QWidget):
     def _handle_current_value_changed(self, value: float):
         """If ramping, signal new for new intermediate calculation."""
         if self.ramp_widget.is_enabled():
+            print("is enabled")
+            self.set_all_radio_enabled_state(True)
             ramp_values = self.ramp_widget.get_values()
             self.signal_current_value_changed.emit(value, ramp_values)
         else:
@@ -96,7 +100,9 @@ class StimParameterWidget(QWidget):
     def _handle_ramp_toggled(self, is_toggled: bool):
         """Send widget ramp values and current value if ramp is toggled on."""
         current_value = self.parameter_spinbox.value()
+
         if is_toggled:
+            self.signal_check_radio_state.emit()
             ramp_values = self.ramp_widget.get_values()
             self.signal_current_value_changed.emit(current_value, ramp_values)
         else:
@@ -118,3 +124,10 @@ class StimParameterWidget(QWidget):
     def get_ramp_values(self) -> dict:
         values = self.ramp_widget.get_values()
         return values
+    
+    def deselect_ramp_buttons(self) -> None:
+        self.ramp_widget.deselect_ramp_buttons()
+
+    def set_all_radio_enabled_state(self, is_enabled: bool):
+        if self.ramp_widget.is_enabled():
+            self.ramp_widget.set_all_radio_enabled_state(is_enabled)

@@ -113,6 +113,8 @@ class RampSettingsWidget(QWidget):
         self.to_rest_duration.setValue(defaults["to_rest_duration"])
         self.to_min_duration.setValue(defaults["to_min_duration"])
 
+        self.set_all_radio_enabled_state(False)
+
     @Slot(bool)
     def _handle_ramp_toggled(self, is_toggled: bool) -> None:
         """
@@ -194,3 +196,28 @@ class RampSettingsWidget(QWidget):
             "ramp_min": self.ramp_min.value(),
             "to_min_duration": self.to_min_duration.value(),
         }
+
+    def deselect_ramp_buttons(self):
+        """Deselect all radio buttons in the group."""
+
+        # Remove mutually exclusivity first since exclusive 
+        # buttons cannot be deselected
+        self._set_radio_mutual_exclusivity(False)
+
+        self._set_all_radio_checked_state(False)
+        self._set_radio_mutual_exclusivity(True)
+
+    def _set_radio_mutual_exclusivity(self, is_exclusive: bool):
+        self.max_radio.setAutoExclusive(is_exclusive)
+        self.rest_radio.setAutoExclusive(is_exclusive)
+        self.min_radio.setAutoExclusive(is_exclusive)
+
+    def _set_all_radio_checked_state(self, is_checked: bool):
+        self.max_radio.setChecked(is_checked)
+        self.rest_radio.setChecked(is_checked)
+        self.min_radio.setChecked(is_checked)
+
+    def set_all_radio_enabled_state(self, is_enabled: bool):
+        self.max_radio.setEnabled(is_enabled)
+        self.rest_radio.setEnabled(is_enabled)
+        self.min_radio.setEnabled(is_enabled)
