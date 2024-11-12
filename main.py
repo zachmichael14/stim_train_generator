@@ -1,39 +1,18 @@
 import sys
-from PySide6 import QtWidgets
 
-import manager
-import plotter
-from widgets import stim_train_widget
+from PySide6.QtWidgets import QApplication, QStyleFactory
 
-# TODO: Adding a new train to a channel causes it to replace the previou train.
-# Appending is probably the desired behavior.
-
-# TODO: Interleave pulses. Possibly include a start latency or a way to determine order. This will probably be a DAQ function in control_window.py
-# Control_window will also no longer need create_stim_trian since that si 
-# handled by the stim manager now. It'll need access to the stim manager
-
-## TODO: Validat base widget values with QtGui.QValidator
-
-## TODO: get rid of value attribute in base widgets? do base widget need value attrs or cna values just be grabbed form the QLineEidt boxes. 
-
-
-"""
-
-
-
-
-"""
+from analog_streaming.controllers.continuous_stimulation import ContinuousStimWidget
+from analog_streaming.managers.continuous_manager import ContinuousStimManager
 
 if __name__ == "__main__":
-    app = QtWidgets.QApplication(sys.argv)
-    window = QtWidgets.QMainWindow()
+    app = QApplication(sys.argv)
+    QApplication.setStyle(QStyleFactory.create("Fusion"))
+    
+    continuous_stim_manager = ContinuousStimManager()
+    main_window = ContinuousStimWidget(continuous_stim_manager)
 
-    train_manager = manager.StimTrainManager()
-    train_widget = stim_train_widget.StimTrainWidget(train_manager)
-    train_plotter = plotter.StimTrainPlotter(train_manager)
-
-    window.setCentralWidget(train_widget)
-    window.setWindowTitle("Stim Train Generator")
-    window.show()
+    main_window.show()
 
     sys.exit(app.exec())
+    

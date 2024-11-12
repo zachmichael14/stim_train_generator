@@ -1,4 +1,5 @@
-PySide6
-nidaqmx
 pandas
+PySide6
 matplotlib
+numpy
+nidaqmx
