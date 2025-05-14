@@ -4,7 +4,7 @@ import sys
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication, QStyleFactory
 
-from app.controllers.continuous_stimulation import ContinuousStimWidget
+from app.controllers.continuous_stimulation import ContinuousStimController
 from app.managers.continuous_manager import ContinuousStimManager
 
 if __name__ == "__main__":
@@ -12,8 +12,8 @@ if __name__ == "__main__":
     QApplication.setStyle(QStyleFactory.create("Fusion"))
     
     continuous_stim_manager = ContinuousStimManager()
-    main_window = ContinuousStimWidget(continuous_stim_manager)
-    main_window.setWindowTitle("Seáñez Lab Stim Train Generator")
+    main_window = ContinuousStimController(continuous_stim_manager)
+    main_window.setWindowTitle("Seáñez Lab Continuous Stimulation Generator")
 
     icon_path = Path("assets/sl_icon.png").resolve() # Get the absolute path
     app_icon = QIcon()
