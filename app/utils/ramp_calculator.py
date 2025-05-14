@@ -105,6 +105,14 @@ class RampCalculator:
         return np.linspace(start_amplitude,
                            end_amplitude,
                            quantity_of_intermediates).tolist()
+        
+    def fill_amplitudes(self,
+                        start_amplitude: float,
+                        end_amplitude: float,
+                        quantity_of_intermediates: int):
+        return np.linspace(start_amplitude,
+                           end_amplitude,
+                           quantity_of_intermediates).tolist()
 
 
     # Two situations:

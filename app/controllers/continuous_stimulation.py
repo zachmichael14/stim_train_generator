@@ -10,7 +10,7 @@ from app.widgets.composite_widgets.instantaneous_control import InstantaneousCon
 from app.widgets.composite_widgets.stim_parameters import StimParameterWidget
 from app.utils.ramp_calculator import RampCalculator
 
-class ContinuousStimWidget(QWidget):
+class ContinuousStimController(QWidget):
     def __init__(self, continuous_stim_manager: ContinuousStimManager):
         super().__init__()
 
@@ -69,23 +69,13 @@ class ContinuousStimWidget(QWidget):
             new_frequency = self.stim_manager.staged_events[0].frequency
             new_amplitude = self.stim_manager.staged_events[0].amplitude
             
+
             frequency_ramp = self.ramp_calculator.generate_single_frequency_ramp(current_frequency, new_frequency, duration)
 
+            amplitude_ramp = self.ramp_calculator.fill_amplitudes(current_amplitude, new_amplitude, len(frequency_ramp))
 
-            # Use new frequency because frequency ramp will occur before amplitude ramp
-            amplitude_ramp = self.ramp_calculator.generate_single_amplitude_ramp(current_amplitude, new_amplitude, duration, new_frequency)
 
-            self.stim_manager.ramp_frequency_from_values(frequency_ramp)
-
-            amplitude_events = [StimEvent(
-                channel=self.stim_manager.current_channel,
-                frequency=new_frequency,
-                amplitude=amplitude,
-                period = 1 / new_frequency
-            ) for amplitude in amplitude_ramp
-            ]
-
-            self.stim_manager.staged_events = amplitude_events.copy()
+            self.stim_manager.ramp_from_update(zip(frequency_ramp, amplitude_ramp))
 
     def _update_ui(self, event: StimEvent):
         self.frequency_widget.parameter_spinbox.setValue(event.frequency)

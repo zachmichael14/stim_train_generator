@@ -1,5 +1,5 @@
 import threading
-from typing import Optional, List
+from typing import Optional, List, Tuple
 
 from PySide6.QtCore import QObject, Signal
 
@@ -194,6 +194,11 @@ class ContinuousStimManager(QObject):
         self.events.clear()
         events = self.make_amplitude_events_from_values(ramp_values)
         self.events = events
+
+    def ramp_from_update(self, ramp_values: List[Tuple[float, float]]):
+        self.events.clear()
+        events = self.make_events_from_values(ramp_values)
+        self.events = events
     
     def make_amplitude_events_from_values(self, values: List[float]):
         events = [
@@ -215,4 +220,15 @@ class ContinuousStimManager(QObject):
                 period = 1 / frequency
             ) for frequency in values
         ]
-        return events       
+        return events
+
+    def make_events_from_values(self, values: List[Tuple[float, float]]):
+        events = [
+            StimEvent(
+                channel=self.current_channel,
+                frequency=frequency,
+                amplitude=amplitude,
+                period=1/frequency
+            ) for frequency, amplitude in values
+        ]
+        return events
