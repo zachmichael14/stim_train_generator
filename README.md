@@ -22,6 +22,7 @@ When both the electrode button and the `Stimulation` toggle are enabled, de-sele
 
 On the other hand, if both the electrode button and the `Stimulation` toggle are toggled off, switching the `Stimulation` toggle to the `On` position will trigger different behavior depending on the electrode mode:
 - In single electrode mode, the electrode button is automatically enabled. The reason for automatic enabling is because there is no other device standing between the DS8R and the participant, so the stimulation will be delivered.  
+
 ![Single electrode toggled on](assets/single_electrode_on.gif)
 **Toggling stimulation on in single electrode mode also enables sole electrode*
 
