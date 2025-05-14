@@ -8,7 +8,7 @@ This application is used to deliver continous stimulation at variable frequencie
 
 ## User Guide
 ### Cathode Selector
-Two modes are available: single electrode mode and multiple electrode mode. Single electrode mode is selected by default with its sole electrode enabled. Single electrode mode only requires the DS8Rs while the use of multiple electrode modes requires the use of the D188 channel switcher in conjunction with the DS8R.
+Two modes are available: single electrode mode and multiple electrode mode. Single electrode mode is selected by default with its sole electrode already enabled. Single electrode mode only requires the DS8Rs while the use of multiple electrode modes requires the use of the D188 channel switcher in conjunction with the DS8R.
 
 To deliver stimulation via the selected electrode (electrode selection is indicated by a green color), switch the `Stimulation` toggle to the on position, and stimulation will be delivered using the frequency and amplitude values specified.
 
@@ -21,11 +21,11 @@ When both the electrode button and the `Stimulation` toggle are enabled, de-sele
 *Toggling electrode off in multiple electrode mode also toggles stimulation off*
 
 On the other hand, if both the electrode button and the `Stimulation` toggle are toggled off, switching the `Stimulation` toggle to the `On` position will trigger different behavior depending on the electrode mode:
-- In single electrode mode, the electrode button is automatically enabled. The reason for automatic enabling is because there is no other device standing between the DS8R and the participant, so the stimulation will be delivered.
+- In single electrode mode, the electrode button is automatically enabled. The reason for automatic enabling is because there is no other device standing between the DS8R and the participant, so the stimulation will be delivered.  
 ![Single electrode toggled on](assets/single_electrode_on.gif)
 **Toggling stimulation on in single electrode mode also enables sole electrode*
 
-- When stimulation is toggle on in multiple electrode mode, the application makes no assumption about the channel on which stimulation should be delievered, so it does not enable one be default. 
+- When stimulation is toggle on in multiple electrode mode, the application makes no assumption about the channel on which stimulation should be delievered, so it does not enable one be default.  
 
 ![Multiple electrode not toggled on](assets/multiple_electrode_on.gif)
 **Toggling stimulation on in multiple electrode mode does not enable an electrode by default*
