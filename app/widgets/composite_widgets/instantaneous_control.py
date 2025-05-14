@@ -61,12 +61,11 @@ class InstantaneousControlWidget(QWidget):
 
         form_layout.addRow("Live Update:",
                            self.live_update_toggle)
-        form_layout.addRow(self.send_update_button)
         form_layout.addRow("Ramp Update Duration (s):",
                            self.ramp_duration_spinbox)
-
-
-        group_box = QGroupBox("Instantaneous Control")
+        form_layout.addRow(self.send_update_button)
+        
+        group_box = QGroupBox("Stimulation Control")
         group_box.setLayout(form_layout)
         
         main_layout = QVBoxLayout()
