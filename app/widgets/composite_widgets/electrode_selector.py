@@ -14,8 +14,8 @@ class ElectrodeMode(Enum):
         SINGLE: Mode for single electrode selection
         MULTI: Mode for multiple electrode selection
     """
-    SINGLE = "DS8R - Single Electrode"
-    MULTI = "D188 - Multiple Electrodes"
+    SINGLE = "Single Electrode - DS8R"
+    MULTI = "Multiple Electrode - D188"
 
 
 class ElectrodeSelectorWidget(QWidget):
@@ -55,7 +55,7 @@ class ElectrodeSelectorWidget(QWidget):
         Sets up the group box, mode selector dropdown, and container for
         electrode widgets.
         """
-        self.group_box = QGroupBox("Cathode Selector")
+        self.group_box = QGroupBox("Electrode Selector")
         layout = QVBoxLayout()
 
         self.mode_selector = QComboBox()
