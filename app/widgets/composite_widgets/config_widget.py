@@ -3,8 +3,8 @@ from PySide6.QtWidgets import (
     QCheckBox, QComboBox, QFormLayout, QLabel, QLineEdit, QPushButton, QVBoxLayout, QWidget
 )
 
-from analog_streaming.widgets.basic_components.import_export import ImportExportWidget
-from analog_streaming.core.defaults import ConfigDefaults
+from app.widgets.basic_components.import_export import ImportExportWidget
+from app.core.defaults import ConfigDefaults
 
 class ConfigWidget(QWidget):
     """Widget that provides UI for setting experimental configuration."""

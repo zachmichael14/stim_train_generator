@@ -6,10 +6,10 @@ from PySide6.QtWidgets import (
     QHBoxLayout, QMainWindow, QWidget, QApplication, QFileDialog, QMessageBox
 )
 
-from analog_streaming.core.defaults import ConfigDefaults
-from analog_streaming.managers.config_manager import ConfigManager
-from analog_streaming.widgets.basic_components.sensor_confirmation import SensorVisualizationWidget
-from analog_streaming.widgets.composite_widgets.config_widget import ConfigWidget
+from app.core.defaults import ConfigDefaults
+from app.managers.config_manager import ConfigManager
+from app.widgets.basic_components.sensor_confirmation import SensorVisualizationWidget
+from app.widgets.composite_widgets.config_widget import ConfigWidget
 
 class ExperimentConfigWindow(QMainWindow):
     """Manages interactions between config widget and config manager."""

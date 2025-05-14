@@ -6,8 +6,8 @@ from PySide6.QtWidgets import (
     QWidget
 )
 
-from analog_streaming.widgets.basic_components.slide_toggle import SlideToggle
-from analog_streaming.widgets.basic_components.debounced_spin_box import DebouncedDoubleSpinBox
+from app.widgets.basic_components.slide_toggle import SlideToggle
+from app.widgets.basic_components.debounced_spin_box import DebouncedDoubleSpinBox
 
 class InstantaneousControlWidget(QWidget):
     """

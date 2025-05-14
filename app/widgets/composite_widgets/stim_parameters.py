@@ -5,9 +5,9 @@ from PySide6.QtWidgets import (
     QGridLayout, QGroupBox, QLabel, QVBoxLayout, QWidget, QSizePolicy
 )
 
-from analog_streaming.widgets.composite_widgets.ramp_settings import RampSettingsWidget
-from analog_streaming.widgets.basic_components.debounced_spin_box import DebouncedDoubleSpinBox
-from analog_streaming.utils.ramp_calculator import RampCalculator
+from app.widgets.composite_widgets.ramp_settings import RampSettingsWidget
+from app.widgets.basic_components.debounced_spin_box import DebouncedDoubleSpinBox
+from app.utils.ramp_calculator import RampCalculator
 
 class StimParameterWidget(QWidget):
     # current value, ramp values

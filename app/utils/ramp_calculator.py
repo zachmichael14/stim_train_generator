@@ -1,7 +1,7 @@
 import numpy as np
 from typing import List, Tuple
 
-from analog_streaming.core.data_classes import RampValues
+from app.core.data_classes import RampValues
 
 class RampCalculator:
     """Class to calculate ramp values over a specified duration."""
