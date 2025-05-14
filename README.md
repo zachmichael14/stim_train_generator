@@ -15,7 +15,7 @@ To deliver stimulation via the selected electrode, switch the `Stimulation` togg
 
 If both the electrode button and the `Stimulation` toggle are enabled, de-selecting the electrode will stop stimulation, as evidenced by the `Stimulation` toggle switching to the `Off` position. This behavior is the same for both single and multiple electrode mode.
 ![Single electrode toggled off](assets/single_electrode_off.gif)
-![multiple electrode off](assets/multiple_electrode_on.gif)
+![multiple electrode off](assets/multiple_electrode_off.gif)
 
 
 #### Important Safety Note
