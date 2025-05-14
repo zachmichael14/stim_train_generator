@@ -4,10 +4,10 @@
 ### Important Safety Note
 Use single electrode mode when your physical hardware configuration resembles the following:
 
-![Single Electrode Mode Configuration](assets\single_electrode_configuration.svg)
+![Single Electrode Mode Configuration](assets/single_electrode_configuration.svg)
 
 Use multiple electrode mode only if your hardware set up involves a D188 and resembles the following:
-![Multiple Electrode Mode Configuration](assets\multiple_electrode_configuration.svg)
+![Multiple Electrode Mode Configuration](assets/multiple_electrode_configuration.svg)
 
 The application does not know if a D188 is connected, so when multiple electrode mode is used, the application doesn't enable an electrode by default. Therefore, if multiple electrode mode is used when there is no D188 physically connected, the lack of an enabled electrode may make it appear as though no stimulation is being delivered even though it is being delivered.
 
