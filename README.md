@@ -1,9 +1,10 @@
-# Seáñez Lab Continuous Stimulation Generator
-This application is used to deliver continous stimulation at variable frequencies and amplitudes.
+# Continuous Stimulation Generator
+This application is used to deliver continous stimulation at variable frequencies and amplitudes. It was developed for the Seáñez Lab at Washington University in St. Louis.
 
 ## Table of Contents
 - [Hardware Requirements](#hardware-requirements)
-- [Installation](#Installation)
+- [Installation](#installation)
+  - [Shortcut Setup](#shortcut-setup)
 - [User Guide](#user-guide)
   - [Electrode Selector](#electrode-selector)
   - [Important Safety Note](#important-safety-note)
