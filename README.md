@@ -37,12 +37,12 @@ cd stim_train_generator
 conda env create -f environment.yml
 ```
 
-3. Activate the created environment
+3. Activate the created environment.
 ```
 conda activate stim
 ```
 
-4. Run the application
+4. Run the application.
 ```
 python main.py
 ```
