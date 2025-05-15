@@ -31,7 +31,7 @@ If you don't have Anaconda or Miniconda installed, Miniconda is recommended.
 git clone git@github.com:zachmichael14/stim_train_generator
 ```
 
-2. Create the virtual environment by running the following command, replacing `<path_to_stim_train_generator>` with the the location of the installation. This will create a Conda virtual environment called `stim`.
+2. Create the virtual environment by running the following command. This will create a Conda virtual environment called `stim`.
 ```
 cd stim_train_generator
 conda env create -f environment.yml
