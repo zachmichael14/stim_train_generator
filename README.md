@@ -25,7 +25,7 @@ This application is used to deliver continous stimulation at variable frequencie
 - Digitimer D188 channel switcher (optional)
 
 ## Installation
-The steps below outline installation using a Conda virtual environment, which requieres Anaconda or Miniconda as a prerequisite. 
+The steps below outline installation using a Conda virtual environment, which requires Anaconda or Miniconda as a prerequisite. 
 If you don't have Anaconda or Miniconda installed, Miniconda is recommended.
 
 1. Clone this repo. This will create a folder called stim_train_generator inside the folder in which this command is run.
@@ -33,10 +33,10 @@ If you don't have Anaconda or Miniconda installed, Miniconda is recommended.
 git clone git@github.com:zachmichael14/stim_train_generator
 ```
 
-2. Create the virtual environment by opening Anaconda Powershell Prompt and running the following command:  
+2. Create the virtual environment by opening Anaconda Powershell Prompt and running the following command, replacing <path_to_stim_train_generator> with the the location of the installation. This will create a virtual environment called `stim`.
 ```
-cd stim_train_generator
-conda create --name stim --file conda_file.txt
+cd <path_to_stim_train_generator>
+conda env create -f environment.yml
 ```
 
 3. Activate the created environment
