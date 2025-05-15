@@ -33,7 +33,7 @@ git clone git@github.com:zachmichael14/stim_train_generator
 
 2. Create the virtual environment by running the following command, replacing `<path_to_stim_train_generator>` with the the location of the installation. This will create a Conda virtual environment called `stim`.
 ```
-cd <path_to_stim_train_generator>
+cd stim_train_generator
 conda env create -f environment.yml
 ```
 
