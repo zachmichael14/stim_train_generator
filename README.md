@@ -3,12 +3,10 @@ This application is used to deliver continous stimulation at variable frequencie
 
 ## Table of Contents
 - [Hardware Requirements](#hardware-requirements)
+- [Installation](#Installation)
 - [User Guide](#user-guide)
   - [Electrode Selector](#electrode-selector)
-    - [Single Electrode Mode](#single-electrode-mode)
-    - [Multiple Electrode Mode](#multiple-electrode-mode)
   - [Important Safety Note](#important-safety-note)
-    - [Hardware Configurations](#hardware-configurations)
   - [Adjusting Parameters](#adjusting-parameters)
     - [Parameter Step Control](#parameter-step-control)
     - [Parameter Increase Limitations](#parameter-increase-limitations)
@@ -24,6 +22,44 @@ This application is used to deliver continous stimulation at variable frequencie
 - National Instruments data acquistion device (NI-DAQ/DAQ)
 - Digitimer DS8R Electrical Stimulator
 - Digitimer D188 channel switcher (optional)
+
+## Installation
+The steps below outline installation using a Conda virtual environment, which requieres Anaconda or Miniconda as a prerequisite. 
+If you don't have Anaconda or Miniconda installed, Miniconda is recommended.
+
+1. Clone this repo. This will create a folder called stim_train_generator inside the folder in which this command is run.
+```
+git clone git@github.com:zachmichael14/stim_train_generator
+```
+
+2. Create the virtual environment by opening Anaconda Powershell Prompt and running the following command:  
+```
+cd stim_train_generator
+conda create --name stim --file conda_file.txt
+```
+
+3. Activate the created environment
+```
+conda activate stim
+```
+
+4. Run the application
+```
+python main.py
+```
+
+### Shortcut Setup
+It's possible to run this application from a desktop shortcut using PowerShell (Windows only).
+
+To create a shortcut, right-click this StimShortcut.ps1 file using the Windows file explorer, then select More Options> Send to > Desktop (create shortcut).
+![Create a shortcut](assets/create_shortcut.gif)
+
+Next, right click the newly created shortcut and select Properties. In the Target box under the Shortcut tab, paste the following:
+```
+powershell.exe -ExecutionPolicy Bypass -WindowStyle Hidden -File <path_to_stim_train_generator>\RunAsAdmin.ps1
+```
+Finally, Click Apply, then click OK
+![Set shortcut taget to PowerShell script](assets/shortcut_target.gif)
 
 ## User Guide
 ### Electrode Selector
@@ -72,6 +108,8 @@ The `Current Value` will increase or decrease by the value in the `Step` input b
 
 ![Parameter increase by step](assets/parameter_step_increase.gif)  
 *The amount by which parameter values change is determined by the specified step*
+
+#### Frequency
 
 #### Note
 As a precautionary measure, the most that `Current Value` can increase at once is limited to 50 Hz for frequency and 15 mA for amplitude. As such, it's not possible to set the value of `Step` above these limits. There is no cap on the amount a parameter can decrease.
