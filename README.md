@@ -50,13 +50,13 @@ python main.py
 ### Shortcut Setup
 It's possible to run this application from a desktop shortcut using PowerShell (Windows only).
 
-To create a shortcut, open the Windows File Explorer and navigate to the `stim_train_generator directory`. Right-click the StimShortcut.ps1 file, then select More Options > Send to > Desktop (create shortcut).  
+To create a shortcut, open the Windows File Explorer and navigate to the `stim_train_generator` directory. Right-click the `StimShortcut.ps1` file, then select `More Options > Send to > Desktop (create shortcut)`.  
 
 ![Create a shortcut](assets/create_shortcut.gif)
 
-Next, right click the newly created shortcut and select `Properties`. In the `Target` box under the `Shortcut` tab, paste the following, replacing `<path_to_stim_train_generator>` with the actual path to the `stim_train_generator` directory:
+Next, right click the newly created shortcut and select `Properties`. In the `Target` box under the `Shortcut` tab, paste the following, replacing `<path_to_StimShortcut.ps1>` with the actual path to the `StimShortcut.ps1` file:
 ```
-powershell.exe -ExecutionPolicy Bypass -WindowStyle Hidden -File <path_to_stim_train_generator>\RunAsAdmin.ps1
+powershell.exe -ExecutionPolicy Bypass -WindowStyle Hidden -File <path_to_StimShortcut.ps1>
 ```
 Finally, Click Apply, then click OK.  
 
