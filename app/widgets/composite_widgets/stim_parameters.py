@@ -74,7 +74,6 @@ class StimParameterWidget(QWidget):
     def _handle_current_value_changed(self, value: float):
         """If ramping, signal new for new intermediate calculation."""
         if self.ramp_widget.is_enabled():
-            print("is enabled")
             self.set_all_radio_enabled_state(True)
             ramp_values = self.ramp_widget.get_values()
             self.signal_current_value_changed.emit(value, ramp_values)

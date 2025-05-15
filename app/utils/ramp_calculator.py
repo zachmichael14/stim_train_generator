@@ -98,7 +98,6 @@ class RampCalculator:
             return [end_amplitude]
     
         elif quantity_of_intermediates == 2:
-            print([((start_amplitude + end_amplitude) / 2), end_amplitude])
             return [((start_amplitude + end_amplitude) / 2), end_amplitude]
 
 
