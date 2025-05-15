@@ -45,6 +45,7 @@ class ContinuousStimManager(QObject):
 
         # Threading and state management
         self.are_updates_live: bool = False
+        self.is_paused = False
         self._running: bool = False
         self._lock: threading.Lock = threading.Lock()
         self._thread: Optional[threading.Thread] = None
@@ -70,7 +71,7 @@ class ContinuousStimManager(QObject):
         if self._thread and self._thread.is_alive():
             self._thread.join()
         self._thread = None
-        print("Thread stopped and joined.")
+        print("Thread stopped and joined :)")
 
     def get_next_event(self) -> StimEvent:
         """
@@ -79,19 +80,17 @@ class ContinuousStimManager(QObject):
         Returns:
             The next stimulation event to process.
         """
-        
-        # For single events, reuse the same event for continuous stim
         if len(self.events) == 2:
             stim_event = self.events.pop(0)
             self.signal_last_ramp_event.emit(self.events[0])
             self.signal_event_updated.emit(self.events[0])
 
-        elif len(self.events) == 1:
+        elif len(self.events) == 1 or self.is_paused:
             stim_event = self.events[0]
         else:
             stim_event = self.events.pop(0)
             self.signal_event_updated.emit(stim_event)
-        print(stim_event)
+        # print(stim_event)
         return stim_event
     
     def set_channel(self, channel: int):
@@ -232,3 +231,14 @@ class ContinuousStimManager(QObject):
             ) for frequency, amplitude in values
         ]
         return events
+    
+    def reset_ramp(self):
+        event = self.events[0]
+
+        self.set_channel(event.channel)
+        self.set_frequency(event.frequency)
+        self.set_amplitude(event.amplitude)
+        self.current_period = 1 / self.current_frequency
+
+        self.events = [event]
+        self.signal_last_ramp_event.emit(event)

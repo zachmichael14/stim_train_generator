@@ -44,6 +44,8 @@ class ContinuousStimController(QWidget):
         self.instantaneous_widget.signal_on_off_changed.connect(self._handle_on_off_changed)
         self.instantaneous_widget.signal_update_mode_changed.connect(self._handle_update_mode_changed)
         self.instantaneous_widget.signal_update_button_clicked.connect(self._handle_update_button_clicked)
+        self.instantaneous_widget.signal_pause_toggled.connect(self._handle_pause_button_clicked)
+        self.instantaneous_widget.signal_reset_button_clicked.connect(self._handle_reset_button_clicked)
 
         self.frequency_widget.signal_current_value_changed.connect(self._handle_current_frequency_changed)
         self.frequency_widget.signal_ramp_params_changed.connect(self._handle_frequency_ramp_params_changed)
@@ -54,6 +56,14 @@ class ContinuousStimController(QWidget):
         self.amplitude_widget.signal_ramp_params_changed.connect(self._handle_amplitude_ramp_params_changed)
         self.amplitude_widget.signal_ramp_requested.connect(self._handle_amplitude_ramp_requested)
         self.amplitude_widget.signal_check_radio_state.connect(self._handle_radio_state)
+
+    def _handle_reset_button_clicked(self):
+        self.stim_manager.reset_ramp()
+        self._update_ui(self.stim_manager.events[0])
+        self.amplitude_widget.deselect_ramp_buttons()
+        self.frequency_widget.deselect_ramp_buttons()
+        self.amplitude_widget.set_all_radio_enabled_state(True)
+        self.frequency_widget.set_all_radio_enabled_state(True)
 
     def _handle_radio_state(self):
         self._enable_ramp_radio_buttons(self.instantaneous_widget.is_on())
@@ -68,14 +78,16 @@ class ContinuousStimController(QWidget):
 
             new_frequency = self.stim_manager.staged_events[0].frequency
             new_amplitude = self.stim_manager.staged_events[0].amplitude
-            
 
             frequency_ramp = self.ramp_calculator.generate_single_frequency_ramp(current_frequency, new_frequency, duration)
 
             amplitude_ramp = self.ramp_calculator.fill_amplitudes(current_amplitude, new_amplitude, len(frequency_ramp))
 
-
             self.stim_manager.ramp_from_update(zip(frequency_ramp, amplitude_ramp))
+
+    def _handle_pause_button_clicked(self, is_paused: bool):
+        self._update_ui(self.stim_manager.events[0])
+        self.stim_manager.is_paused = is_paused
 
     def _update_ui(self, event: StimEvent):
         self.frequency_widget.parameter_spinbox.setValue(event.frequency)
@@ -94,7 +106,6 @@ class ContinuousStimController(QWidget):
         if self.stim_manager.staged_events:
             self.stim_manager.apply_changes()
      
-
     @Slot(int)
     def _handle_electrode_selected(self, channel: int):
         # -1 is deselection flag. Since no electrode is selected, stop stim
@@ -112,10 +123,15 @@ class ContinuousStimController(QWidget):
             self.electrode_selector.handle_stim_on()
         else:
             self.stim_manager.stop()
+            # This will act as a killswitch for any ramp in progress
+            self.stim_manager.reset_ramp()
 
     def _enable_ramp_radio_buttons(self, is_on: bool):
         self.frequency_widget.set_all_radio_enabled_state(is_on)
+        self.frequency_widget.deselect_ramp_buttons()
         self.amplitude_widget.set_all_radio_enabled_state(is_on)
+        self.amplitude_widget.deselect_ramp_buttons()
+        
 
     @Slot(bool)
     def _handle_update_mode_changed(self, are_updates_live):
@@ -152,7 +168,10 @@ class ContinuousStimController(QWidget):
     @Slot(str)
     def _handle_frequency_ramp_requested(self, ramp_direction: str):
         """Frequency ramp requested from current to ramp_direction"""
+        print(self.stim_manager.frequency_ramp_values)
         self.stim_manager.ramp_frequency_from_direction(ramp_direction)
+        self.frequency_widget.set_all_radio_enabled_state(False)
+        self.amplitude_widget.set_all_radio_enabled_state(False)
 
     @Slot(float)
     def _update_all_frequency_ramps(self,
@@ -206,3 +225,5 @@ class ContinuousStimController(QWidget):
     def _handle_amplitude_ramp_requested(self, ramp_direction: str):
         """Frequency ramp requested from current to ramp_direction"""
         self.stim_manager.ramp_amplitude_from_direction(ramp_direction)
+        self.frequency_widget.set_all_radio_enabled_state(False)
+        self.amplitude_widget.set_all_radio_enabled_state(False)
