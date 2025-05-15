@@ -26,7 +26,7 @@ If you don't have Anaconda or Miniconda installed, Miniconda is recommended.
 
 1. From Anaconda PowerShell Prompt, run the `cd` command until you are in the directory from which you want to run the application.
 
-1. Clone this repo inside the directory from above. The command below will create a folder called stim_train_generator inside the chosen directory.
+1. Clone this repo inside the directory from above. The command below will create a folder called `stim_train_generator` inside the chosen directory.
 ```
 git clone git@github.com:zachmichael14/stim_train_generator
 ```
