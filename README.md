@@ -3,7 +3,7 @@ This application is used to deliver continous stimulation at variable frequencie
 
 ## Hardware Requirements
 - National Instruments data acquistion device (NI-DAQ/DAQ)
-- Digitimer DS8R Electrical Stimulation
+- Digitimer DS8R Electrical Stimulator
 - Digitimer D188 channel switcher (optional)
 
 ## User Guide
@@ -46,7 +46,7 @@ Use multiple electrode mode only if your hardware set up involves a D188 and res
 
 ### Adjusting Parameters
 The `Current Value` input represents the value of the parameter that will be used when stimulation is delivered, with frequency in Hertz (Hz) and amplitude in milliamps (mA).  The `Current Value` will increase or decrease by the value in the `Step` input box each time the up or down arrow of `Current Value` is clicked, respectively. The up and down arrow keyboard keys may also be used to change the value in these boxes.  
-![Parameter increase by step](assets/parameter_step_increase.gif)
+![Parameter increase by step](assets/parameter_step_increase.gif)  
 *The amount by which parameter values change is determined by the specified step*
 
 #### Note
@@ -73,6 +73,6 @@ Importantly, these values are not enforced as labeled (that is to say that it's 
 *Individual parameters can also be ramped*
 
 #### Freezing Stim Parameters
-If stimulation should continue at the current parameters at any point during a ramp, the ramp can be paused at the current value using the `Freeze Ramp` button. This will not stop stimulation, but will instead deliver stimulation using the values at the point in the ramp when the freeze button was pressed. Clicking the `Resume Ramping` button will continue the ramp from the moment it was paused.
+If stimulation should continue at the current parameters at any point during a ramp, the ramp can be paused with the current value using the `Freeze Ramp` button. This will not stop stimulation, but will instead deliver stimulation using the values at the point in the ramp when the freeze button was pressed. Clicking the `Resume Ramping` button will continue the ramp from the moment it was paused.
 ![Parameter ramping can be paused](assets/freeze_ramp.gif)
 
