@@ -9,13 +9,9 @@ This application is used to deliver continous stimulation at variable frequencie
   - [Electrode Selector](#electrode-selector)
   - [Important Safety Note](#important-safety-note)
   - [Adjusting Parameters](#adjusting-parameters)
-    - [Parameter Step Control](#parameter-step-control)
-    - [Parameter Increase Limitations](#parameter-increase-limitations)
   - [Beginning Stimulation](#beginning-stimulation)
     - [Parameter Update Immediacy](#parameter-update-immediacy)
-    - [Update Ramping](#update-ramping)
   - [Parameter Ramping](#parameter-ramping)
-    - [Ramp Settings](#ramp-settings)
     - [Freezing a Parameter Ramp](#freezing-a-parameter-ramp)
     - [Quitting the Ramp](#quitting-the-ramp)
 
@@ -52,11 +48,11 @@ python main.py
 ### Shortcut Setup
 It's possible to run this application from a desktop shortcut using PowerShell (Windows only).
 
-To create a shortcut, right-click this StimShortcut.ps1 file using the Windows file explorer, then select More Options> Send to > Desktop (create shortcut).  
+To create a shortcut, open the Windows File Explorer and navigate to the `stim_train_generator directory`. Right-click the StimShortcut.ps1 file, then select More Options > Send to > Desktop (create shortcut).  
 
 ![Create a shortcut](assets/create_shortcut.gif)
 
-Next, right click the newly created shortcut and select Properties. In the Target box under the Shortcut tab, paste the following:
+Next, right click the newly created shortcut and select `Properties`. In the `Target` box under the `Shortcut` tab, paste the following, replacing `<path_to_stim_train_generator>` with the actual path to the `stim_train_generator` directory:
 ```
 powershell.exe -ExecutionPolicy Bypass -WindowStyle Hidden -File <path_to_stim_train_generator>\RunAsAdmin.ps1
 ```
@@ -111,8 +107,6 @@ The `Current Value` will increase or decrease by the value in the `Step` input b
 
 ![Parameter increase by step](assets/parameter_step_increase.gif)  
 *The amount by which parameter values change is determined by the specified step*
-
-#### Frequency
 
 #### Note
 As a precautionary measure, the most that `Current Value` can increase at once is limited to 50 Hz for frequency and 15 mA for amplitude. As such, it's not possible to set the value of `Step` above these limits. There is no cap on the amount a parameter can decrease.
