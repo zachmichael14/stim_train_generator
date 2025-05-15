@@ -28,7 +28,7 @@ class ContinuousStimManager(QObject):
         self.current_channel: int = 0
         self.current_amplitude: float = AmplitudeDefaults.defaults["global_value"]
         self.current_frequency: float = FrequencyDefaults.defaults["global_value"]
-        self.current_period: float = 1 / self.current_frequency
+        self.current_period: float = 1 / self.current_frequency if self.current_frequency > 0 else 0
 
         # Ramp intervals values 
         self.frequency_ramp_values: Optional[RampValues] = None
@@ -90,7 +90,7 @@ class ContinuousStimManager(QObject):
         else:
             stim_event = self.events.pop(0)
             self.signal_event_updated.emit(stim_event)
-        # print(stim_event)
+        print(stim_event)
         return stim_event
     
     def set_channel(self, channel: int):
@@ -122,7 +122,7 @@ class ContinuousStimManager(QObject):
                 self.current_channel, 
                 self.current_frequency,
                 self.current_amplitude,
-                1/self.current_frequency
+                1 / self.current_frequency if self.current_frequency > 0 else 0
         )
         self.staged_events.append(event)
 
@@ -205,7 +205,7 @@ class ContinuousStimManager(QObject):
                 channel=self.current_channel,
                 frequency=self.current_frequency,
                 amplitude=amplitude,
-                period = 1 / self.current_frequency
+                period = 1 / self.current_frequency if self.current_frequency > 0 else 0
             ) for amplitude in values
         ]
         return events
@@ -238,7 +238,6 @@ class ContinuousStimManager(QObject):
         self.set_channel(event.channel)
         self.set_frequency(event.frequency)
         self.set_amplitude(event.amplitude)
-        self.current_period = 1 / self.current_frequency
-
+        self.current_period = 1 / self.current_frequency if self.current_frequency > 0 else 0
         self.events = [event]
         self.signal_last_ramp_event.emit(event)
