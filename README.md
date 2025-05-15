@@ -24,9 +24,9 @@ This application is used to deliver continous stimulation at variable frequencie
 The steps below outline installation using a Conda virtual environment, which requires Anaconda or Miniconda as a prerequisite. 
 If you don't have Anaconda or Miniconda installed, Miniconda is recommended.
 
-1. From Anaconda PowerShell Prompt, run the `cd` command until you are in 
+1. From Anaconda PowerShell Prompt, run the `cd` command until you are in the directory from which you want to run the application.
 
-1. Clone this repo inside a directory of your choice. The command below will create a folder called stim_train_generator inside the chosen folder.
+1. Clone this repo inside the directory from above. The command below will create a folder called stim_train_generator inside the chosen directory.
 ```
 git clone git@github.com:zachmichael14/stim_train_generator
 ```
